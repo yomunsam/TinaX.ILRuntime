@@ -1,0 +1,19 @@
+{
+    "name": "TinaX.ILRuntime.Editor",
+    "references": [
+        "TinaX.ILRuntime",
+        "TinaX.Core",
+        "TinaX.Core.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

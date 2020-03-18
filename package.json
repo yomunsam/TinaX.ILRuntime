@@ -1,0 +1,23 @@
+{
+  "name": "io.nekonya.tinax.ilruntime",
+  "version": "6.6.0-preview",
+  "displayName": "TinaX.ILRuntime",
+  "description": "ILRuntime for TinaX Framework.",
+  "unity": "2019.3",
+  "keywords": [
+    "TinaX",
+    "TinaX Framework",
+    "ILRuntime",
+    "HotFix"
+  ],
+  "author": {
+    "name": "yomunsam",
+    "email": "yomunsam@gmail.com",
+    "url": "https://yomunchan.moe"
+  },
+  "type": "library",
+  "dependencies": {
+    "io.nekonya.tinax.core": "6.6.0-preview",
+    "io.nekonya.tinax.vfs": "6.6.0-preview"
+  }
+}
