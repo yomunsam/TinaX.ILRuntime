@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinaX.ILRuntime.Internal
+namespace TinaX.XILRuntime.Internal
 {
     [Serializable]
     public enum AssemblyLoadingMethod

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinaX.ILRuntime.Const
+namespace TinaX.XILRuntime.Const
 {
     public static class XRuntimeConst
     {

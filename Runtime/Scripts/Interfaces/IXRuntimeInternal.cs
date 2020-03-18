@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TinaX.ILRuntime.Exceptions;
+using TinaX.XILRuntime.Exceptions;
 
-namespace TinaX.ILRuntime.Internal
+namespace TinaX.XILRuntime.Internal
 {
     public interface IXRuntimeInternal
     {

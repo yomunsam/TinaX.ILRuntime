@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TinaX.ILRuntime.Internal
+namespace TinaX.XILRuntime.Internal
 {
     public class XRuntimeConfig : ScriptableObject
     {
@@ -15,6 +15,12 @@ namespace TinaX.ILRuntime.Internal
         public string Symbol_LoadPathByFrameworkAssetsManager;
         #endregion
 
+
+
+        #region Editor
+        public string CLRBindingOutputFolder = "Assets/TinaX/XILRuntime/Generated";
+        public string AssemblyFilePathInEditor;
+        #endregion
 
     }
 }

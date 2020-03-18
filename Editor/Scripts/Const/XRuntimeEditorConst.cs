@@ -5,11 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using TinaXEditor.Const;
 
-namespace TinaXEditor.ILRuntime.Const
+namespace TinaXEditor.XILRuntime.Const
 {
     public static class XRuntimeEditorConst
     {
         public static readonly string ProjectSetting_Node = XEditorConst.ProjectSettingRootName + "/XILRuntime";
+
 
         public static readonly string[] HotUpdatableAssembly_BlackList =
         {

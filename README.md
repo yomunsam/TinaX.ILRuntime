@@ -29,7 +29,6 @@ package name: `io.nekonya.tinax.ilruntime`
 
 Before setup `TinaX.VFS`, please ensure the following dependencies are installed by `Unity Package Manager`:
 
-- [io.nekonya.tinax.vfs](https://github.com/yomunsam/UniRx.UPM) :`git://github.com/yomunsam/TinaX.VFS.git`
 - [io.nekonya.tinax.core](https://github.com/yomunsam/tinax.core) :`git://github.com/yomunsam/TinaX.Core.git`
 
 ------

@@ -1,6 +1,6 @@
 ﻿using TinaX;
 
-namespace TinaX.ILRuntime.Internal
+namespace TinaX.XILRuntime.Internal
 {
     public class XRTBootstarp : IXBootstrap
     {

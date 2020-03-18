@@ -17,7 +17,6 @@
   },
   "type": "library",
   "dependencies": {
-    "io.nekonya.tinax.core": "6.6.0-preview",
-    "io.nekonya.tinax.vfs": "6.6.0-preview"
+    "io.nekonya.tinax.core": "6.6.0-preview"
   }
 }

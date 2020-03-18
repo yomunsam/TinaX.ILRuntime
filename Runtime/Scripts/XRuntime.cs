@@ -6,18 +6,20 @@ using System.Reflection;
 using System.IO;
 using System.Threading.Tasks;
 using TinaX;
-using TinaX.ILRuntime.Internal;
-using TinaX.ILRuntime.Const;
-using TinaX.ILRuntime.Exceptions;
+using TinaX.XILRuntime.Internal;
+using TinaX.XILRuntime.Const;
+using TinaX.XILRuntime.Exceptions;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Mono.Cecil.Pdb;
 using ILRuntime.Mono.Cecil.Cil;
 using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+using AppDomain = System.AppDomain;
+using ILRuntime.CLR.TypeSystem;
 
-namespace TinaX.ILRuntime
+namespace TinaX.XILRuntime
 {
-    public class XRuntime : IXRuntime, IXRuntimeInternal
+    public class XRuntime : IXRuntime, IXRuntimeInternal , TinaX.Services.IAppDomain
     {
         private ILAppDomain mAppDomain;
         private XRuntimeConfig mConfig;
@@ -36,11 +38,6 @@ namespace TinaX.ILRuntime
         private string mEntryMethod_Type;
         private string mEntryMethod_Method;
 
-
-#if UNITY_EDITOR
-        private bool mDisableILRuntimeInEditor = false;
-        private bool mLoadAssemblyFromProjectLibraryInEditor = false;
-#endif
 
         public XRuntime()
         {
@@ -80,22 +77,36 @@ namespace TinaX.ILRuntime
 
             #endregion
 
-            bool try_init_ilruntime = true;
-#if UNITY_EDITOR
-            if (mDisableILRuntimeInEditor)
+            bool success = await TryInitILAppDomain();
+
+            if (success)
             {
-                try_init_ilruntime = false;
-                Debug.Log(XRuntimeI18N.Tips_DisableILRuntimeInEditor);
+                registerCLR();
+
+                //cli binding
+                string type_name = "ILRuntime.Runtime.Generated.CLRBindings";
+                string method_name = "Initialize";
+                var assemblys = AppDomain.CurrentDomain.GetAssemblies();
+                Type type = null;
+                foreach(var asm in assemblys)
+                {
+                    type = asm.GetType(type_name);
+                    if (type != null)
+                        break;
+                }
+                if (type != null)
+                {
+                    var method = type.GetMethod(method_name, new Type[] { typeof(ILAppDomain) });
+                    if (method != null)
+                    {
+                        method.Invoke(null, new object[] { mAppDomain });
+                    }
+                    else
+                        Debug.LogError("[TinaX.ILRuntime] CLR binding failed. the method \"Initialize\" not found");
+                }
+                else
+                    Debug.LogWarning("[TinaX.ILRuntime] CLRBindings code not found. Please generate CLR binding code in Menu or ProjectSettings.");
             }
-            if (mLoadAssemblyFromProjectLibraryInEditor)
-                Debug.Log(XRuntimeI18N.Tips_LoadFromLibraryInEditor);
-#endif
-            if (try_init_ilruntime)
-            {
-                bool success = await TryInitILAppDomain();
-                
-            }
-            
 
             mInited = true;
             return true;
@@ -120,6 +131,16 @@ namespace TinaX.ILRuntime
             return this.InvokeILRT(type, method, instance, param);
         }
 
+        public void RegisterCLRMethodRedirection(MethodBase method, CLRRedirectionDelegate func)
+        {
+            if(mAppDomain != null)
+            {
+                mAppDomain.RegisterCLRMethodRedirection(method, func);
+            }
+        }
+
+        
+
         /// <summary>
         /// 调用入口方法，由XRuntime的Bootstarp调用
         /// </summary>
@@ -137,9 +158,7 @@ namespace TinaX.ILRuntime
             Stream pdb_stream = null;
 
             bool load_assembly_by_frameowrk = (mConfig.AssemblyLoadMode == AssemblyLoadingMethod.FrameworkAssetsManager);
-#if UNITY_EDITOR
-            if (mLoadAssemblyFromProjectLibraryInEditor) load_assembly_by_frameowrk = false;
-#endif
+
             if (load_assembly_by_frameowrk)
             {
                 if (mCore.TryGetBuiltinService<TinaX.Services.IAssetService>(out var assets))
@@ -217,7 +236,16 @@ namespace TinaX.ILRuntime
             return mAppDomain.Invoke(type, method, instance, param);
         }
 
+        private unsafe void registerCLR()
+        {
+            //test
+            List<CLRRedirectionInfo> refirections = new List<CLRRedirectionInfo>(CLRRedirectionDefineInternal.Redirections);
 
+            //要用反射来获取开发者定义的列表嘛？待决定
+
+            foreach (var item in refirections)
+                mAppDomain.RegisterCLRMethodRedirection(item.method, item.func);
+        }
 
         private void print(object obj)
         {
@@ -226,6 +254,7 @@ namespace TinaX.ILRuntime
 #endif
         }
 
+        
 
         private static class XRuntimeI18N
         {

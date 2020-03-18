@@ -4,10 +4,10 @@ using UnityEngine;
 using TinaX;
 using TinaX.Services;
 using System.Threading.Tasks;
-using TinaX.ILRuntime.Const;
-using TinaX.ILRuntime.Internal;
+using TinaX.XILRuntime.Const;
+using TinaX.XILRuntime.Internal;
 
-namespace TinaX.ILRuntime
+namespace TinaX.XILRuntime
 {
     public class XRuntimeProvider : IXServiceProvider
     {
@@ -22,7 +22,7 @@ namespace TinaX.ILRuntime
         /// </summary>
         public void OnServiceRegister()
         {
-            XCore.GetMainInstance().BindSingletonService<IXRuntime, XRuntime>().SetAlias<IXRuntimeInternal>();
+            XCore.GetMainInstance().BindSingletonService<IXRuntime, IAppDomain, XRuntime>().SetAlias<IXRuntimeInternal>();
         }
 
         /// <summary>

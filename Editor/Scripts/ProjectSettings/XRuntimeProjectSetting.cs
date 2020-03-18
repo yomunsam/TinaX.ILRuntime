@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using TinaXEditor.Const;
-using TinaXEditor.ILRuntime.Const;
-using TinaX.ILRuntime.Internal;
+using TinaXEditor.XILRuntime.Const;
+using TinaX.XILRuntime.Internal;
 using TinaX;
-using TinaX.ILRuntime.Const;
+using TinaX.XILRuntime.Const;
 using System.IO;
 using System.Linq;
 
-namespace TinaXEditor.ILRuntime
+namespace TinaXEditor.XILRuntime
 {
     public static class XRuntimeProjectSetting
     {
@@ -144,6 +144,29 @@ namespace TinaXEditor.ILRuntime
 
                         GUILayout.Space(20);
                         EditorGUILayout.HelpBox(XRuntimeProjectSettingI18N.Tips_ConnotHotFix, MessageType.Warning);
+
+                        GUILayout.Space(35);
+                        TinaXEditor.Utils.EditorGUIUtil.HorizontalLine();
+
+                        //CLR OUTPUT
+                        EditorGUILayout.LabelField(XRuntimeProjectSettingI18N.CLRBinding_Output_Folder);
+                        EditorGUILayout.BeginHorizontal();
+                        mConfig.CLRBindingOutputFolder = EditorGUILayout.TextField(mConfig.CLRBindingOutputFolder);
+                        if (GUILayout.Button("Select",style_btn_normal, GUILayout.Width(65)))
+                        {
+                            var path = EditorUtility.OpenFolderPanel("Select CLR BindingOutputFolder", "Assets/","");
+                            var root_path = Directory.GetCurrentDirectory().Replace("\\", "/");
+                            if (path.StartsWith(root_path))
+                            {
+                                path = path.Substring(root_path.Length + 1, path.Length - root_path.Length - 1);
+                                path = path.Replace("\\", "/");
+                                mConfig.CLRBindingOutputFolder = path;
+                            }
+                            else
+                                Debug.LogError("Invalid Path: " + path);
+                        }
+                        EditorGUILayout.EndHorizontal();
+
                     }
                 },
                 deactivateHandler = () =>
@@ -333,6 +356,18 @@ namespace TinaXEditor.ILRuntime
                     if (NihongoDesuka)
                         return "注：このページのすべての設定をホットアップデートすることはできません。";
                     return "Note: All settings on this page cannot be hot-updated.";
+                }
+            }
+
+            public static string CLRBinding_Output_Folder
+            {
+                get
+                {
+                    if (IsChinese)
+                        return "CLR绑定代码输出目录";
+                    if (NihongoDesuka)
+                        return "CLRバインディングコードの出力ディレクトリ";
+                    return "CLR binding code output directory";
                 }
             }
 

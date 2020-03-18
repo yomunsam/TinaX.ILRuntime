@@ -1,4 +1,4 @@
-﻿namespace TinaX.ILRuntime.Exceptions
+﻿namespace TinaX.XILRuntime.Exceptions
 {
     public class MethodNotFound : XRTException
     {

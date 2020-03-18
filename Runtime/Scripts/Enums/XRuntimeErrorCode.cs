@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinaX.ILRuntime
+namespace TinaX.XILRuntime
 {
     public enum XRuntimeErrorCode
     {
