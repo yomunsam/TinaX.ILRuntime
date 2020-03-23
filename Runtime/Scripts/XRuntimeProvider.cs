@@ -9,6 +9,7 @@ using TinaX.XILRuntime.Internal;
 
 namespace TinaX.XILRuntime
 {
+    [XServiceProviderOrder(100)]
     public class XRuntimeProvider : IXServiceProvider
     {
         public string ServiceName => XRuntimeConst.ServiceName;

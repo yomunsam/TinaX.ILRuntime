@@ -16,6 +16,11 @@ namespace TinaX.XILRuntime.Internal
                 method = typeof(XCore).GetMethod("CreateInstance",flag,null,new Type[]{ typeof(Type), typeof(object[]) },null),
                 func = TinaXCoreCLR.CreateInstance,
             },
+            new CLRRedirectionInfo()
+            {
+                method = typeof(IXCore).GetMethod("CreateInstance",flag,null,new Type[]{ typeof(Type), typeof(object[]) },null),
+                func = TinaXCoreCLR.CreateInstance,
+            },
 
             //Unity------------------------------------
             new CLRRedirectionInfo() //Debug.Log

@@ -9,7 +9,8 @@ namespace TinaX.XILRuntime.Internal
 
         public void OnStart()
         {
-            XCore.MainInstance.GetService<IXRuntimeInternal>().InvokeEntryMathod();
+            if (XCore.MainInstance.TryGetService<IXRuntimeInternal>(out var service))
+                service.InvokeEntryMathod();
         }
 
         public void OnAppRestart() { }

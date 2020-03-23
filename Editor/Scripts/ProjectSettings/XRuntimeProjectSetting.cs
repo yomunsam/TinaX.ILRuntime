@@ -155,15 +155,18 @@ namespace TinaXEditor.XILRuntime
                         if (GUILayout.Button("Select",style_btn_normal, GUILayout.Width(65)))
                         {
                             var path = EditorUtility.OpenFolderPanel("Select CLR BindingOutputFolder", "Assets/","");
-                            var root_path = Directory.GetCurrentDirectory().Replace("\\", "/");
-                            if (path.StartsWith(root_path))
+                            if (!path.IsNullOrEmpty())
                             {
-                                path = path.Substring(root_path.Length + 1, path.Length - root_path.Length - 1);
-                                path = path.Replace("\\", "/");
-                                mConfig.CLRBindingOutputFolder = path;
+                                var root_path = Directory.GetCurrentDirectory().Replace("\\", "/");
+                                if (path.StartsWith(root_path))
+                                {
+                                    path = path.Substring(root_path.Length + 1, path.Length - root_path.Length - 1);
+                                    path = path.Replace("\\", "/");
+                                    mConfig.CLRBindingOutputFolder = path;
+                                }
+                                else
+                                    Debug.LogError("Invalid Path: " + path);
                             }
-                            else
-                                Debug.LogError("Invalid Path: " + path);
                         }
                         EditorGUILayout.EndHorizontal();
 

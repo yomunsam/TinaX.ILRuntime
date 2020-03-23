@@ -27,7 +27,7 @@ package name: `io.nekonya.tinax.ilruntime`
 
 在安装之前，请先确保已安装如下依赖：
 
-Before setup `TinaX.VFS`, please ensure the following dependencies are installed by `Unity Package Manager`:
+Before setup `TinaX.ILRuntime`, please ensure the following dependencies are installed by `Unity Package Manager`:
 
 - [io.nekonya.tinax.core](https://github.com/yomunsam/tinax.core) :`git://github.com/yomunsam/TinaX.Core.git`
 

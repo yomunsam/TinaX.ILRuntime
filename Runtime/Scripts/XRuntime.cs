@@ -45,7 +45,9 @@ namespace TinaX.XILRuntime
             mAssemblyFilePath = Path.Combine(XCore.LocalStorage_TinaX, "xruntime", XRuntimeConst.AssemblyFileName);
             mSymbolFilePath = Path.Combine(XCore.LocalStorage_TinaX, "runtime", XRuntimeConst.SymbolFileName);
             mAppDomain = new ILAppDomain();
+#if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
             mAppDomain.UnityMainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
+#endif
         }
 
         public async Task<bool> Start()
