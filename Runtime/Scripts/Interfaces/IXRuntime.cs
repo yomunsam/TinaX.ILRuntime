@@ -10,6 +10,7 @@ namespace TinaX.XILRuntime
 {
     public interface IXRuntime
     {
+        object CreateInstance(Type type, params object[] args);
         object Invoke(string type, string method, object instance = null, params object[] param);
 
         

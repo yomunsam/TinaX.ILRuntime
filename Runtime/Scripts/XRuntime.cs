@@ -141,7 +141,11 @@ namespace TinaX.XILRuntime
             }
         }
 
-        
+        public object CreateInstance(Type type, params object[] args)
+        {
+            Debug.Log("走到这儿了");
+            return null;
+        }
 
         /// <summary>
         /// 调用入口方法，由XRuntime的Bootstarp调用
