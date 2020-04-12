@@ -38,6 +38,7 @@ namespace TinaX.XILRuntime
         private string mEntryMethod_Type;
         private string mEntryMethod_Method;
 
+        public ILAppDomain ILAppDomain => this.mAppDomain;
 
         public XRuntime()
         {
@@ -141,7 +142,14 @@ namespace TinaX.XILRuntime
             }
         }
 
-        
+        public void RegisterCrossBindingAdaptor(CrossBindingAdaptor adaptor)
+        {
+            if(mAppDomain != null)
+            {
+                mAppDomain.RegisterCrossBindingAdaptor(adaptor);
+            }
+        }
+
 
         /// <summary>
         /// 调用入口方法，由XRuntime的Bootstarp调用
@@ -170,7 +178,10 @@ namespace TinaX.XILRuntime
                         TextAsset dll_ta = await assets.LoadAsync<TextAsset>(mConfig.Dll_LoadPathByFrameworkAssetsManager);
                         dll_stream = new MemoryStream(dll_ta.bytes);
                     }
-                    catch (XException) { /* do nothing */ }
+                    catch (XException e) 
+                    {
+                        Debug.LogError("[TinaX.ILRuntime] load assembly failed:" + e.Message);
+                    }
 
                     if (dll_stream != null && mCore.DevelopMode)
                     {
