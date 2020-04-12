@@ -1,21 +1,17 @@
-﻿using System;
+﻿using ILRuntime.Mono.Cecil.Cil;
+using ILRuntime.Mono.Cecil.Pdb;
+using ILRuntime.Runtime.Enviorment;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
-using TinaX;
-using TinaX.XILRuntime.Internal;
 using TinaX.XILRuntime.Const;
 using TinaX.XILRuntime.Exceptions;
-using ILRuntime.Runtime.Enviorment;
-using ILRuntime.Mono.Cecil.Pdb;
-using ILRuntime.Mono.Cecil.Cil;
+using TinaX.XILRuntime.Internal;
 using UnityEngine;
-using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using AppDomain = System.AppDomain;
-using ILRuntime.CLR.TypeSystem;
+using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 
 namespace TinaX.XILRuntime
 {
@@ -49,6 +45,7 @@ namespace TinaX.XILRuntime
 #if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
             mAppDomain.UnityMainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
+            registerCLR();
         }
 
         public async Task<bool> Start()
@@ -84,8 +81,6 @@ namespace TinaX.XILRuntime
 
             if (success)
             {
-                registerCLR();
-
                 //cli binding
                 string type_name = "ILRuntime.Runtime.Generated.CLRBindings";
                 string method_name = "Initialize";
@@ -139,6 +134,14 @@ namespace TinaX.XILRuntime
             if(mAppDomain != null)
             {
                 mAppDomain.RegisterCLRMethodRedirection(method, func);
+            }
+        }
+
+        public void RegisterCLRMethodRedirection(IEnumerable<CLRRedirectionInfo> funcs)
+        {
+            foreach(var item in funcs)
+            {
+                mAppDomain?.RegisterCLRMethodRedirection(item.method, item.func);
             }
         }
 
