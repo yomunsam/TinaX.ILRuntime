@@ -150,6 +150,19 @@ namespace TinaX.XILRuntime
             }
         }
 
+        public object CreateInstance(Type type, params object[] args)
+        {
+            if (type is ILRuntime.Reflection.ILRuntimeType)
+            {
+                var obj = mAppDomain?.Instantiate(type.FullName, args);
+                if (obj is CrossBindingAdaptorType)
+                    return ((CrossBindingAdaptorType)obj).ILInstance;
+                else
+                    return obj;
+            }
+            else
+                return Activator.CreateInstance(type, args);
+        }
 
         /// <summary>
         /// 调用入口方法，由XRuntime的Bootstarp调用
@@ -161,6 +174,7 @@ namespace TinaX.XILRuntime
                 this.InvokeILRT(mEntryMethod_Type, mEntryMethod_Method);
             }
         }
+
 
         private async Task<bool> TryInitILAppDomain()
         {
