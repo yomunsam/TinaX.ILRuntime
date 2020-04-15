@@ -1,21 +1,25 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace TinaX.XILRuntime.Internal
 {
     public class XRuntimeConfig : ScriptableObject
     {
+        [System.Serializable]
+        public struct S_AssemblyLoadPath
+        {
+            public string AssemblyLoadPath;
+            public string SymbolFileLoadPath;
+        }
+
+
         public bool EnableILRuntime = true;
         
         public string EntryMethod; //入口方法
 
-        public AssemblyLoadingMethod AssemblyLoadMode;
+        public List<S_AssemblyLoadPath> Assemblys;
 
-        #region If load from framework assets manager
-        public string Dll_LoadPathByFrameworkAssetsManager;
-        public string Symbol_LoadPathByFrameworkAssetsManager;
-        #endregion
-
-
+        public bool NotLoadSymbolInNonDevelopMode = true; 
 
         #region Editor
         public string CLRBindingOutputFolder = "Assets/TinaX/XILRuntime/Generated";

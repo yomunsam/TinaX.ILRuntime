@@ -9,11 +9,11 @@ using ILRuntime.Runtime.Intepreter;
 namespace ILRuntime.Runtime.Stack
 {
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-#pragma warning disable CS0661 // 类型定义运算符 == 或运算符 !=，但不重写 Object.GetHashCode()
 #pragma warning disable CS0660 // 类型定义运算符 == 或运算符 !=，但不重写 Object.Equals(object o)
+#pragma warning disable CS0661 // 类型定义运算符 == 或运算符 !=，但不重写 Object.GetHashCode()
     public struct StackObject
-#pragma warning restore CS0660 // 类型定义运算符 == 或运算符 !=，但不重写 Object.Equals(object o)
 #pragma warning restore CS0661 // 类型定义运算符 == 或运算符 !=，但不重写 Object.GetHashCode()
+#pragma warning restore CS0660 // 类型定义运算符 == 或运算符 !=，但不重写 Object.Equals(object o)
     {
         public static StackObject Null = new StackObject() { ObjectType = ObjectTypes.Null, Value = -1, ValueLow = 0 };
         public ObjectTypes ObjectType;
@@ -193,7 +193,8 @@ namespace ILRuntime.Runtime.Stack
         public unsafe static void Initialized(StackObject* esp, IType type)
         {
             var t = type.TypeForCLR;
-            if (type.IsPrimitive || type.IsEnum)
+            
+            if (type.IsPrimitive)
             {
                 if (t == typeof(int) || t == typeof(uint) || t == typeof(short) || t == typeof(ushort) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(char) || t == typeof(bool))
                 {
@@ -221,6 +222,17 @@ namespace ILRuntime.Runtime.Stack
                 }
                 else
                     throw new NotImplementedException();
+            }
+            else if (type.IsEnum)
+            {
+                if(type is ILType ilType)
+                {
+                    Initialized(esp, ilType.FieldTypes[0]);
+                }
+                else
+                {
+                    Initialized(esp, ((CLRType)type).OrderedFieldTypes[0]);
+                }
             }
             else
             {

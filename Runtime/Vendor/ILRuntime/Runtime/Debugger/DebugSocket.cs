@@ -11,8 +11,12 @@ namespace ILRuntime.Runtime.Debugger
     {
         private Socket _socket = null;
         private bool _ready = false;
-#pragma warning disable CS0414
+#pragma warning disable IDE0044 // 添加只读修饰符
+#pragma warning disable IDE0051 // 删除未使用的私有成员
+#pragma warning disable CS0414 
         bool connectFailed = false;
+#pragma warning restore IDE0051 // 删除未使用的私有成员
+#pragma warning restore IDE0044 // 添加只读修饰符
 #pragma warning restore CS0414
         private const int MAX_BUFF_SIZE = 256 * 1024;
         private const int HEAD_SIZE = 8;
@@ -70,11 +74,11 @@ namespace ILRuntime.Runtime.Debugger
                 {
                     ReceivePayload(e.Buffer, e.BytesTransferred);
                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
 #pragma warning disable IDE0059 // 不需要赋值
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
                 catch (Exception ex)
-#pragma warning restore IDE0059 // 不需要赋值
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
+#pragma warning restore IDE0059 // 不需要赋值
                 {
                     Close();
                     return;

@@ -4,6 +4,7 @@ using ILRuntime.Runtime.Enviorment;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using TinaX.XILRuntime.Const;
@@ -12,6 +13,7 @@ using TinaX.XILRuntime.Internal;
 using UnityEngine;
 using AppDomain = System.AppDomain;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+using TinaX.XILRuntime.Internal.Adaptor;
 
 namespace TinaX.XILRuntime
 {
@@ -19,17 +21,15 @@ namespace TinaX.XILRuntime
     {
         private ILAppDomain mAppDomain;
         private XRuntimeConfig mConfig;
+        private TinaX.Services.IAssetService mAssets;
         private bool mInited = false;
 
-        private Stream mAssemblyStream;
-        private Stream mSymbolStream;
+        private List<AssemblyLoadInfo> mAssemblyCaches = new List<AssemblyLoadInfo>();
 
-        private string mAssemblyFilePath;
-        private string mSymbolFilePath;
 
         private IXCore mCore;
 
-        private XRTException mStartException;
+        private XException mStartException;
 
         private string mEntryMethod_Type;
         private string mEntryMethod_Method;
@@ -39,13 +39,12 @@ namespace TinaX.XILRuntime
         public XRuntime()
         {
             mCore = XCore.GetMainInstance();
-            mAssemblyFilePath = Path.Combine(XCore.LocalStorage_TinaX, "xruntime", XRuntimeConst.AssemblyFileName);
-            mSymbolFilePath = Path.Combine(XCore.LocalStorage_TinaX, "runtime", XRuntimeConst.SymbolFileName);
             mAppDomain = new ILAppDomain();
 #if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
             mAppDomain.UnityMainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
 #endif
             registerCLR();
+            AdaptorRegister.Register(this);
         }
 
         public async Task<bool> Start()
@@ -77,48 +76,68 @@ namespace TinaX.XILRuntime
 
             #endregion
 
-            bool success = await TryInitILAppDomain();
-
-            if (success)
+            if (!XCore.MainInstance.TryGetBuiltinService(out mAssets)) 
             {
-                //cli binding
-                string type_name = "ILRuntime.Runtime.Generated.CLRBindings";
-                string method_name = "Initialize";
-                var assemblys = AppDomain.CurrentDomain.GetAssemblies();
-                Type type = null;
-                foreach(var asm in assemblys)
-                {
-                    type = asm.GetType(type_name);
-                    if (type != null)
-                        break;
-                }
+                mStartException = new XRTException("[TinaX.ILRuntime] Invalid Framework Built-in Assets Service Interface.(TinaX.Services.IAssetService)", XRuntimeErrorCode.FrameworkAssetsManagerInterfaceInValid);
+                return false;
+            }
+
+            try
+            {
+                await loadAssemblys(mAppDomain);
+            }
+            catch(XException e)
+            {
+                mStartException = e;
+                return false;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            #region CLR Binding
+            string clr_bind_type_name = "ILRuntime.Runtime.Generated.CLRBindings";
+            string clr_bind_method_name = "Initialize";
+
+            var assemblys = AppDomain.CurrentDomain.GetAssemblies();
+            Type type = null;
+            foreach (var asm in assemblys)
+            {
+                type = asm.GetType(clr_bind_type_name);
                 if (type != null)
+                    break;
+            }
+            if (type != null)
+            {
+                var method = type.GetMethod(clr_bind_method_name, new Type[] { typeof(ILAppDomain) });
+                if (method != null)
                 {
-                    var method = type.GetMethod(method_name, new Type[] { typeof(ILAppDomain) });
-                    if (method != null)
-                    {
-                        method.Invoke(null, new object[] { mAppDomain });
-                    }
-                    else
-                        Debug.LogError("[TinaX.ILRuntime] CLR binding failed. the method \"Initialize\" not found");
+                    method.Invoke(null, new object[] { mAppDomain });
                 }
                 else
-                    Debug.LogWarning("[TinaX.ILRuntime] CLRBindings code not found. Please generate CLR binding code in Menu or ProjectSettings.");
+                    Debug.LogError("[TinaX.ILRuntime] CLR binding failed. the method \"Initialize\" not found");
             }
+            else
+                Debug.LogWarning("[TinaX.ILRuntime] CLRBindings code not found. Please generate CLR binding code in Menu or ProjectSettings.");
+            #endregion
 
             mInited = true;
             return true;
         }
-        public XRTException GetStartException() { return mStartException; }
+        public XException GetStartException() { return mStartException; }
 
         public void OnQuit()
         {
-            if (mAssemblyStream != null)
-                mAssemblyStream.Dispose();
-            mAssemblyStream = null;
-            if (mSymbolStream != null)
-                mSymbolStream.Dispose();
-            mSymbolStream = null;
+            if(mAssemblyCaches.Count > 0)
+            {
+                foreach(var item in mAssemblyCaches)
+                {
+                    item.AssemblyStream?.Dispose();
+                    item.SymbolStream?.Dispose();
+                }
+                mAssemblyCaches.Clear();
+            }
         }
 
         public object Invoke(string type, string method, object instance = null, params object[] param)
@@ -178,85 +197,96 @@ namespace TinaX.XILRuntime
             }
         }
 
-
-        private async Task<bool> TryInitILAppDomain()
+        private async Task loadAssemblys(ILAppDomain _appdomain)
         {
-            Stream dll_stream = null;
-            Stream pdb_stream = null;
-
-            bool load_assembly_by_frameowrk = (mConfig.AssemblyLoadMode == AssemblyLoadingMethod.FrameworkAssetsManager);
-
-            if (load_assembly_by_frameowrk)
+            if(mAssemblyCaches.Count > 0)
             {
-                if (mCore.TryGetBuiltinService<TinaX.Services.IAssetService>(out var assets))
+                mAssemblyCaches.ForEach(info =>
                 {
-                    try
+                    if(info.AssemblyStream != null)
                     {
-                        TextAsset dll_ta = await assets.LoadAsync<TextAsset>(mConfig.Dll_LoadPathByFrameworkAssetsManager);
-                        dll_stream = new MemoryStream(dll_ta.bytes);
+                        info.AssemblyStream.Dispose();
+                        info.AssemblyStream = null;
                     }
-                    catch (XException e) 
+                    if(info.SymbolStream != null)
                     {
-                        Debug.LogError("[TinaX.ILRuntime] load assembly failed:" + e.Message);
+                        info.SymbolStream.Dispose();
+                        info.SymbolStream = null;
                     }
+                });
+            }
+            mAssemblyCaches.Clear();
 
-                    if (dll_stream != null && mCore.DevelopMode)
+            if (mConfig.Assemblys != null && mConfig.Assemblys.Count > 0)
+            {
+                bool loadSymbol = true;
+                if (!XCore.GetMainInstance().DevelopMode && mConfig.NotLoadSymbolInNonDevelopMode)
+                    loadSymbol = false;
+
+                List<Task<AssemblyLoadInfo>> _loadTask = new List<Task<AssemblyLoadInfo>>();
+                foreach(var item in mConfig.Assemblys)
+                {
+                    if (item.AssemblyLoadPath.IsNullOrEmpty())
+                        continue;
+                    _loadTask.Add(loadAssemblyAndSymbolAsync(item.AssemblyLoadPath, item.SymbolFileLoadPath, loadSymbol));
+                }
+
+                if(_loadTask.Count > 0)
+                {
+                    await Task.WhenAll(_loadTask);
+                    foreach(var myTask in _loadTask)
                     {
-                        try
-                        {
-                            TextAsset pdb_ta = await assets.LoadAsync<TextAsset>(mConfig.Symbol_LoadPathByFrameworkAssetsManager);
-                            pdb_stream = new MemoryStream(pdb_ta.bytes);
-                        }
-                        catch (XException) { }
+                        var myInfo = myTask.Result;
+                        if (mAssemblyCaches.Any(i => i.AssemblyLoadPath == myInfo.AssemblyLoadPath))
+                            continue;
+
+                        mAssemblyCaches.Add(myInfo);
+                        if (myInfo.SymbolStream != null)
+                            _appdomain.LoadAssembly(myInfo.AssemblyStream, myInfo.SymbolStream, new PdbReaderProvider());
+                        else
+                            _appdomain.LoadAssembly(myInfo.AssemblyStream);
                     }
                 }
-                else
-                {
-                    throw new XRTException("[TinaX.ILRuntime] Load Assembly Failed: Framework not implementationed assets manager interface.", XRuntimeErrorCode.FrameworkAssetsManagerInterfaceInValid);
-                }
-            }
-            else
-            {
-                if (File.Exists(mAssemblyFilePath))
-                {
-                    dll_stream = new FileStream(mAssemblyFilePath, FileMode.Open);
-                    if (mSymbolFilePath == null)
-                    {
-                        pdb_stream = new FileStream(mSymbolFilePath, FileMode.Open);
-                    }
-                }
             }
 
-            if (dll_stream != null)
-            {
-                this.loadAssembly(dll_stream, pdb_stream);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
+            await Task.CompletedTask;
         }
 
-        private void loadAssembly(Stream assembly, Stream symbol = null, ISymbolReaderProvider symbolReaderProvider = null)
+        private async Task<AssemblyLoadInfo> loadAssemblyAndSymbolAsync(string assemblyPath, string symbolPath, bool loadSymbol)
         {
-            
-            if (mAssemblyStream != null) mAssemblyStream.Dispose();
-            if (mSymbolStream != null) mSymbolStream.Dispose();
-            mAssemblyStream = assembly;
-            mSymbolStream = symbol;
-
-            if (symbol == null)
-                mAppDomain.LoadAssembly(mAssemblyStream);
-            else
+            var info = new AssemblyLoadInfo()
             {
-                if (symbolReaderProvider == null)
-                    mAppDomain.LoadAssembly(mAssemblyStream, mSymbolStream, new PdbReaderProvider());
-                else
-                    mAppDomain.LoadAssembly(mAssemblyStream, mSymbolStream, symbolReaderProvider);
+                AssemblyLoadPath = assemblyPath,
+                SymbolLoadPath = symbolPath
+            };
+
+            try
+            {
+                var assembly_ta = await mAssets.LoadAsync<TextAsset>(assemblyPath);
+                info.AssemblyStream = new MemoryStream(assembly_ta.bytes);
             }
-        }
+            catch
+            {
+                throw;
+            }
+
+            if (loadSymbol)
+            {
+                try
+                {
+                    var symbol_ta = await mAssets.LoadAsync<TextAsset>(symbolPath);
+                    info.SymbolStream = new MemoryStream(symbol_ta.bytes);
+                }
+                catch(Exception e)
+                {
+                    Debug.LogError($"[TinaX.ILRuntime] Load assembly's symbol ({symbolPath}) failed: {e.Message}");
+                    info.SymbolStream = null;
+                }
+            }
+            return info;
+        } 
+
+
 
         
 
@@ -277,14 +307,6 @@ namespace TinaX.XILRuntime
                 mAppDomain.RegisterCLRMethodRedirection(item.method, item.func);
         }
 
-        private void print(object obj)
-        {
-#if TINAX_DEBUG_DEV
-            Debug.Log(obj);
-#endif
-        }
-
-        
 
         private static class XRuntimeI18N
         {

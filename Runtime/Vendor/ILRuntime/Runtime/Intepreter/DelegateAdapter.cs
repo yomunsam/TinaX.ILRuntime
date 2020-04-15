@@ -767,7 +767,7 @@ namespace ILRuntime.Runtime.Intepreter
 
 #pragma warning disable CS0659 // 类型重写 Object.Equals(object o)，但不重写 Object.GetHashCode()
     abstract class DelegateAdapter : ILTypeInstance, IDelegateAdapter
-#pragma warning restore CS0659 // 类型重写 Object.Equals(object o)，但不重写 Object.GetHashCode()
+#pragma warning restore CS0659 // 类型重写 Object.Equals(object o)，但不重写 Object.GetHashCode() 
     {
         protected ILMethod method;
         protected ILTypeInstance instance;

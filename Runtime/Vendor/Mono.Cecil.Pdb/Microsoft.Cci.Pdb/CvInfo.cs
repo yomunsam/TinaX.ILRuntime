@@ -28,8 +28,8 @@
 //  This is a read-only copy of the C++ file converted to C#.
 //
 using System;
+
 #pragma warning disable CS0649
-#pragma warning disable CS0661
 
 namespace Microsoft.Cci.Pdb {
   internal struct FLOAT10 {
@@ -2436,5 +2436,5 @@ namespace Microsoft.Cci.Pdb {
   }
 }
 
+
 #pragma warning restore CS0649
-#pragma warning restore CS0661

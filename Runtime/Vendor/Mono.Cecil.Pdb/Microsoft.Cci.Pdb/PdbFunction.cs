@@ -38,10 +38,8 @@ namespace Microsoft.Cci.Pdb {
     internal string[] usedNamespaces;
     internal PdbLines[] lines;
     internal ushort[]/*?*/ usingCounts;
-#pragma warning disable CS0414
 #pragma warning disable CS0649
     internal IEnumerable<INamespaceScope>/*?*/ namespaceScopes;
-#pragma warning restore CS0414
 #pragma warning restore CS0649
     internal string/*?*/ iteratorClass;
     internal List<ILocalScope>/*?*/ iteratorScopes;

@@ -9,7 +9,7 @@ namespace TinaX.XILRuntime.Internal
 {
     public interface IXRuntimeInternal
     {
-        XRTException GetStartException();
+        XException GetStartException();
         void InvokeEntryMathod();
         Task<bool> Start();
     }
