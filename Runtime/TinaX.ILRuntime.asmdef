@@ -1,14 +1,17 @@
 {
     "name": "TinaX.ILRuntime",
     "references": [
-        "TinaX.Core"
+        "TinaX.Core",
+        "ILRuntime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
-        "CatLib.Core.dll"
+        "CatLib.Core.dll",
+        "ILRuntim.Mono.Cecil.dll",
+        "ILRuntime.Mono.Cecil.Pdb.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

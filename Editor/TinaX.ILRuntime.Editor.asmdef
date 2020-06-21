@@ -3,7 +3,8 @@
     "references": [
         "TinaX.ILRuntime",
         "TinaX.Core",
-        "TinaX.Core.Editor"
+        "TinaX.Core.Editor",
+        "ILRuntime"
     ],
     "includePlatforms": [
         "Editor"
