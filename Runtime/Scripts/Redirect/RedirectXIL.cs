@@ -24,6 +24,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
             m_Mappings = new Dictionary<Type, RedirectMapping>();
 
             Register_IServiceContainer();
+            Register_IXCore();
         }
 
         /// <summary>

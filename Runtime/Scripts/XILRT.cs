@@ -7,6 +7,7 @@ using TinaX.XILRuntime.Internal;
 using TinaX.Services;
 using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+using AppDomain = System.AppDomain;
 using ILRuntime.Mono.Cecil.Pdb;
 using System;
 using ILRuntime.Runtime.Enviorment;
@@ -26,6 +27,7 @@ namespace TinaX.XILRuntime
         /// </summary>
         public bool LoadSymbol { get; set; }
         public DelegateManager DelegateManager => m_AppDomain?.DelegateManager;
+        public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
 
         private IAssetService m_Assets;
         private bool m_Inited = false;
@@ -36,6 +38,16 @@ namespace TinaX.XILRuntime
 
         private Dictionary<string, Stream> m_LoadedAssemblies = new Dictionary<string, Stream>();
         private Dictionary<string, Stream> m_LoadedSymbols = new Dictionary<string, Stream>();
+
+        /// <summary>
+        /// ILRuntime自动生成的CLR绑定代码 的类名
+        /// </summary>
+        private const string c_CLRBind_GenCode_TypeName = "ILRuntime.Runtime.Generated.CLRBindings";
+        /// <summary>
+        /// ILRuntime自动生成的CLR绑定代码 的方法名
+        /// </summary>
+        private const string c_CLRBind_GenCode_MethodName = "Initialize";
+        
 
         public XILRT(IAssetService assets)
         {
@@ -57,6 +69,7 @@ namespace TinaX.XILRuntime
          * 启动顺序：
          * - 注册CLR重定向
          * - 注册委托适配器
+         * - 注册跨域适配器
          * - 注册CLR绑定
          * - 加载Assembly和它的小伙伴们
          * 
@@ -75,6 +88,12 @@ namespace TinaX.XILRuntime
 
             //注册委托适配器
             registerDelegates();
+
+            //注册跨域适配器
+            registerCrossBindingAdaptors();
+
+            //注册CLR绑定
+            registerGeneratorCLRBindingCode();
 
             //加载Assemblies
             var e_load = await this.loadAssemblies(m_Config.LoadAssemblies);
@@ -106,6 +125,12 @@ namespace TinaX.XILRuntime
         public IXILRuntime RegisterCLRMethodRedirection(MethodBase method,CLRRedirectionDelegate func)
         {
             m_AppDomain?.RegisterCLRMethodRedirection(method, func);
+            return this;
+        }
+
+        public IXILRuntime RegisterValueTypeBinder(Type type, ValueTypeBinder binder)
+        {
+            m_AppDomain?.RegisterValueTypeBinder(type, binder);
             return this;
         }
 
@@ -159,6 +184,12 @@ namespace TinaX.XILRuntime
                     throw new ServiceNotFoundException(property.PropertyType); //抛异常
             }
         }
+
+        public void InvokeILMethod(string type, string method, params object[] args)
+        {
+            m_AppDomain.Invoke(type, method, null, args);
+        }
+
 
         public void InvokeEntryMethod()
         {
@@ -257,6 +288,48 @@ namespace TinaX.XILRuntime
             InternalRegisters.RegisterDelegates(this);
         }
 
+        /// <summary>
+        /// 内部方法：注册跨域继承适配器
+        /// </summary>
+        private void registerCrossBindingAdaptors()
+        {
+            InternalRegisters.RegisterCrossBindingAdaptors(this);
+        }
+
+        /// <summary>
+        /// 内部方法：注册生成出来的CLR绑定代码
+        /// </summary>
+        private void registerGeneratorCLRBindingCode()
+        {
+            /*
+             * 我们希望在framework里完成CLR绑定代码的自动注册
+             * 1. 这段生成代码不一定存在
+             * 2. XILRuntime无法确定这个代码会存在于哪个Assembly里
+             * 
+             * 所以，使用反射的方式进行调用
+             */
+            var assemblys = AppDomain.CurrentDomain.GetAssemblies();
+            Type type = null;
+            foreach (var asm in assemblys)
+            {
+                type = asm.GetType(c_CLRBind_GenCode_TypeName);
+                if (type != null)
+                    break;
+            }
+
+            if (type != null)
+            {
+                var method = type.GetMethod(c_CLRBind_GenCode_MethodName, new Type[] { typeof(ILAppDomain) });
+                if (method != null)
+                {
+                    method.Invoke(null, new object[] { m_AppDomain });
+                }
+                else
+                    Debug.LogError("[TinaX.ILRuntime] CLR binding failed. Method \"Initialize\" not found");
+            }
+            else
+                Debug.LogWarning("[TinaX.ILRuntime] CLR binding failed. Generated code not found");
+        }
         
     }
 }

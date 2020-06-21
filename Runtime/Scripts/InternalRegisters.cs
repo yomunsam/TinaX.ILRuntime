@@ -1,10 +1,4 @@
-﻿using ILRuntime.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TinaX.XILRuntime.Internal.Adaptors;
 
 namespace TinaX.XILRuntime.Internal
 {
@@ -19,6 +13,11 @@ namespace TinaX.XILRuntime.Internal
         {
             //CLR重定向
             Redirect.RedirectXIL.Register(xil);
+        }
+
+        internal static void RegisterCrossBindingAdaptors(IXILRuntime xil)
+        {
+            xil.RegisterCrossBindingAdaptor(new IAsyncStateMachineClassInheritanceAdaptor()); //用于Async/await
         }
 
 

@@ -3,7 +3,6 @@
  * https://github.com/CatLib/CatLib.ILRuntime/blob/master/src/Redirect/RedirectApp_Bind.cs
  * 让我们感谢神奇的喵大
  */
-using CatLib;
 using CatLib.Container;
 using ILRuntime.CLR.Method;
 using ILRuntime.CLR.Utils;
@@ -12,9 +11,6 @@ using ILRuntime.Runtime.Intepreter;
 using ILRuntime.Runtime.Stack;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TinaX.XILRuntime.Utils;
 
 namespace TinaX.XILRuntime.Internal.Redirect
@@ -53,6 +49,22 @@ namespace TinaX.XILRuntime.Internal.Redirect
 
             mapping.Register("Singleton", 1, 0, Singleton_TConcrete);
             mapping.Register("Singleton", 2, 0, Singleton_TService_TConcrete);
+
+            mapping.Register("SingletonIf", 1, 1, SingletonIf_TService_IBindData);
+            mapping.Register("SingletonIf", 2, 1, SingletonIf_TService_TConcrete_IBindData);
+
+            mapping.Register("BindBuiltInService", 2, 0, BindBuiltInService_TConcrete);
+            mapping.Register("BindBuiltInService", 3, 0, BindBuiltInService_TBuiltInService_TService_TConcrete);
+
+            mapping.Register("Unbind", 1, 0, Unbind_TService);
+            mapping.Register("Unbind", 0, 1, new string[] {
+                "System.Type"
+            }, Unbind_Types);
+
+            mapping.Register("Inject", 0, 1, Inject_Object);
+
+            mapping.Register("Type2ServiceName", 0, 1, Type2ServiceName_Type);
+            mapping.Register("Type2ServiceName", 1, 0, Type2ServiceName_TService);
 
         }
 
@@ -138,6 +150,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
                 (object)typeof(ILTypeInstance).CheckCLRTypes(StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
 
 
+            intp.Free(ptrOfThisMethod);
 
             var result = XCore.MainInstance.Services.TryGet(tService, out service, userparams);
 
@@ -174,6 +187,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
             var _type =
                 (Type)typeof(Type).CheckCLRTypes(StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
             var tService = XILUtil.GetCatLibServiceName(_type);
+            intp.Free(ptrOfThisMethod);
 
             var result = XCore.MainInstance.Services.TryGet(tService, out service, userparams);
 
@@ -209,7 +223,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
             var service =
                 (object)typeof(ILTypeInstance).CheckCLRTypes(StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
 
-
+            intp.Free(ptrOfThisMethod);
             var result = XCore.MainInstance.Services.TryGetBuildInService(tService, out service);
 
             ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
@@ -240,6 +254,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
                 (Type)typeof(Type).CheckCLRTypes(StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
             var tService = XILUtil.GetCatLibServiceName(_type);
 
+            intp.Free(ptrOfThisMethod);
             var result = XCore.MainInstance.Services.TryGetBuildInService(tService, out service);
 
             ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
@@ -374,6 +389,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
                 (IBindData)typeof(IBindData).CheckCLRTypes(
                     StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
 
+            intp.Free(ptrOfThisMethod);
             var result = XCore.MainInstance.Services.BindIf(tService, tType, false, out bindData);
 
             ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
@@ -402,7 +418,36 @@ namespace TinaX.XILRuntime.Internal.Redirect
                 (IBindData)typeof(IBindData).CheckCLRTypes(
                     StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
 
+            intp.Free(ptrOfThisMethod);
             var result = XCore.MainInstance.Services.BindIf(tService, tType, false, out bindData);
+            ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
+            XILUtil.SetValue(ptrOfThisMethod, mStack, intp.AppDomain, bindData);
+
+            return ILIntepreter.PushObject(ILIntepreter.Minus(esp, 1), mStack, result);
+        }
+
+        //bool SingletonIf<TService>(out IBindData bindData);
+        private static StackObject* SingletonIf_TService_IBindData(ILIntepreter intp, StackObject* esp, IList<object> mStack,
+            CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 1 || method.ParameterCount != 1)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            var tService = XILUtil.ITypeToService(genericArguments[0]);
+            var tType = XILUtil.ITypeToClrType(genericArguments[0]);
+
+            var ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
+            ptrOfThisMethod = ILIntepreter.GetObjectAndResolveReference(ptrOfThisMethod);
+
+            var bindData =
+                (IBindData)typeof(IBindData).CheckCLRTypes(
+                    StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
+
+            intp.Free(ptrOfThisMethod);
+            var result = XCore.MainInstance.Services.BindIf(tService, tType, true, out bindData);
 
             ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
             XILUtil.SetValue(ptrOfThisMethod, mStack, intp.AppDomain, bindData);
@@ -410,19 +455,167 @@ namespace TinaX.XILRuntime.Internal.Redirect
             return ILIntepreter.PushObject(ILIntepreter.Minus(esp, 1), mStack, result);
         }
 
+        //bool SingletonIf<TService, TConcrete>(out IBindData bindData);
+        private static StackObject* SingletonIf_TService_TConcrete_IBindData(ILIntepreter intp, StackObject* esp, IList<object> mStack,
+            CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 2 || method.ParameterCount != 1)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            var tService = XILUtil.ITypeToService(genericArguments[0]);
+            var tType = XILUtil.ITypeToClrType(genericArguments[1]);
+
+            var ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
+            ptrOfThisMethod = ILIntepreter.GetObjectAndResolveReference(ptrOfThisMethod);
+
+            var bindData =
+                (IBindData)typeof(IBindData).CheckCLRTypes(
+                    StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
+            intp.Free(ptrOfThisMethod);
+
+            var result = XCore.MainInstance.Services.BindIf(tService, tType, true, out bindData);
+
+            ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
+            XILUtil.SetValue(ptrOfThisMethod, mStack, intp.AppDomain, bindData);
+
+            return ILIntepreter.PushObject(ILIntepreter.Minus(esp, 1), mStack, result);
+        }
+
+        //IBindData BindBuiltInService<TBuiltInService, TService, TConcrete>() where TBuiltInService : IBuiltInService;
+        private static StackObject* BindBuiltInService_TBuiltInService_TService_TConcrete(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 3 || method.ParameterCount != 0)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            var tBuildInService = XILUtil.ITypeToService(genericArguments[0]);
+            var tService = XILUtil.ITypeToService(genericArguments[1]);
+            var tType = XILUtil.ITypeToClrType(genericArguments[2]);
+
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(esp, 1);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 1);
+            TinaX.Container.IServiceContainer instance_of_this_method = (TinaX.Container.IServiceContainer)typeof(TinaX.Container.IServiceContainer).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, mStack));
+            intp.Free(ptr_of_this_method);
+
+            var result_of_this_method = instance_of_this_method.Bind(tBuildInService, tType, true).SetAlias(tService);
+
+            return ILIntepreter.PushObject(esp, mStack, result_of_this_method);
+        }
+
+        private static StackObject* BindBuiltInService_TConcrete(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 2 || method.ParameterCount != 0)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            var tBuildInService = XILUtil.ITypeToService(genericArguments[0]);
+            var tType = XILUtil.ITypeToClrType(genericArguments[1]);
+
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(esp, 1);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 1);
+            TinaX.Container.IServiceContainer instance_of_this_method = (TinaX.Container.IServiceContainer)typeof(TinaX.Container.IServiceContainer).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, mStack));
+            intp.Free(ptr_of_this_method);
+
+            var result_of_this_method = instance_of_this_method.Bind(tBuildInService, tType, true);
+
+            return ILIntepreter.PushObject(esp, mStack, result_of_this_method);
+        }
+
         #endregion
 
-        internal static StackObject* Type2ServiceName_param(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        #region Unbind
+        //void Unbind<TService>();
+        private static StackObject* Unbind_TService(ILIntepreter intp, StackObject* esp, IList<object> mStack,
+            CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 1 || method.ParameterCount != 0)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            var tService = XILUtil.ITypeToService(genericArguments[0]);
+            XCore.MainInstance.Services.Unbind(tService);
+
+            return esp;
+        }
+
+        //void Unbind(Type type);
+        private static StackObject* Unbind_Types(ILIntepreter intp, StackObject* esp, IList<object> mStack,
+            CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (method.ParameterCount != 1)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            ILRuntime.Runtime.Enviorment.AppDomain domain = intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(esp, 3);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 1);
+            Type type = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, domain, mStack));
+            intp.Free(ptr_of_this_method);
+
+            var tService = XILUtil.GetCatLibServiceName(type);
+            XCore.MainInstance.Services.Unbind(tService);
+
+            return esp;
+        }
+
+        #endregion
+
+        #region Inject
+
+        //void Inject(object target);
+        private static StackObject* Inject_Object(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain domain = intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(esp, 2);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 1);
+            System.Object target = (System.Object)typeof(System.Object).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, domain, mStack));
+            intp.Free(ptr_of_this_method);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 2);
+            TinaX.Container.IServiceContainer instance_of_this_method = (TinaX.Container.IServiceContainer)typeof(TinaX.Container.IServiceContainer).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, domain, mStack));
+            intp.Free(ptr_of_this_method);
+
+            //instance_of_this_method.Inject(@target);
+            XCore.MainInstance.Services.Get<IXILRuntime>().InjectObject(target);
+
+            return __ret;
+        }
+
+        #endregion
+
+
+        internal static StackObject* Type2ServiceName_Type(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
             StackObject* __ret = ILIntepreter.Minus(__esp, 1);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Type @type = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Type type = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
             __intp.Free(ptr_of_this_method);
 
-            var result_of_this_method = XCore.GetMainInstance().Services.Type2ServiceName(type);
+            var result_of_this_method = XILUtil.GetCatLibServiceName(type);
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 

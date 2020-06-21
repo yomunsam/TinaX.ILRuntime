@@ -29,6 +29,7 @@ namespace TinaXEditor.XILRuntime.Generator
 
             //TinaX
             typeof(IXCore),
+            typeof(XCore),
             typeof(TinaX.Container.IServiceContainer),
             typeof(ITimeTicket),
             typeof(TimeMachine),
