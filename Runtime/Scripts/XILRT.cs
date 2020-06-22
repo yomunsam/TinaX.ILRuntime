@@ -191,7 +191,7 @@ namespace TinaX.XILRuntime
         }
 
 
-        public void InvokeEntryMethod()
+        public async Task InvokeEntryMethod()
         {
             if (m_Config == null || !m_Config.Enable)
                 return;
@@ -203,7 +203,20 @@ namespace TinaX.XILRuntime
                 Debug.LogWarning($"[{Const.XILConst.ServiceName}] Invalid entry class name or method name");
                 return;
             }
-            m_AppDomain.Invoke(m_Config.EntryClass, m_Config.EntryMethod, null, null);
+
+            try
+            {
+                var result = m_AppDomain.Invoke(m_Config.EntryClass, m_Config.EntryMethod, null, null);
+                if(result is Task)
+                {
+                    var result_task = result as Task;
+                    await result_task;
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
 
         public bool TryGetServiceName(Type type, out string name)
@@ -323,6 +336,9 @@ namespace TinaX.XILRuntime
                 if (method != null)
                 {
                     method.Invoke(null, new object[] { m_AppDomain });
+#if TINAX_DEV
+                    Debug.Log("<color=green>已执行CLR生成代码的注册</color>");
+#endif
                 }
                 else
                     Debug.LogError("[TinaX.ILRuntime] CLR binding failed. Method \"Initialize\" not found");

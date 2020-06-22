@@ -4,7 +4,7 @@ namespace TinaX.XILRuntime.Internal
 {
     public interface IXILRTInternal
     {
-        void InvokeEntryMethod();
+        Task InvokeEntryMethod();
         Task<XException> StartAsync();
     }
 }

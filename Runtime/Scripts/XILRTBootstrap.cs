@@ -4,11 +4,11 @@
     {
         public void OnInit(IXCore core) { }
 
-        public void OnStart(IXCore core)
+        public async void OnStart(IXCore core)
         {
             if(core.Services.TryGet<IXILRTInternal>(out var ilrt))
             {
-                ilrt.InvokeEntryMethod();
+                await ilrt.InvokeEntryMethod();
             }
         }
 

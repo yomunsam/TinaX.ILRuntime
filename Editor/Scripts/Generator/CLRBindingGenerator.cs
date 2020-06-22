@@ -13,6 +13,8 @@ using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using TinaX.Utils;
 using System.IO;
 using NUnit.Framework;
+using System.Threading.Tasks;
+using TinaX.XILRuntime.Internal.Adaptors;
 
 namespace TinaXEditor.XILRuntime.Generator
 {
@@ -26,6 +28,7 @@ namespace TinaXEditor.XILRuntime.Generator
             typeof(object),
             typeof(string),
             typeof(Array),
+            typeof(Exception),
 
             //TinaX
             typeof(IXCore),
@@ -35,6 +38,7 @@ namespace TinaXEditor.XILRuntime.Generator
             typeof(TimeMachine),
             typeof(IEventTicket),
             typeof(XEvent),
+            typeof(XException),
 
             //Unity
             typeof(GameObject),
@@ -43,6 +47,9 @@ namespace TinaXEditor.XILRuntime.Generator
             typeof(Debug),
             typeof(RectTransform),
             typeof(Time),
+
+            //Other
+            typeof(UniRx.Observable),
         };
 
         private static HashSet<MethodBase> s_InternalExcludeMethods = new HashSet<MethodBase>
@@ -70,6 +77,11 @@ namespace TinaXEditor.XILRuntime.Generator
         {
 
         };
+
+        private static void Internal_HandleBeforeGenCodeByAssemblies(ILAppDomain domain)
+        {
+            domain.RegisterCrossBindingAdaptor(new IAsyncStateMachineClassInheritanceAdaptor());
+        }
 
 
         [MenuItem("TinaX/X ILRuntime/Generator/Generate by define")]
@@ -228,7 +240,7 @@ namespace TinaXEditor.XILRuntime.Generator
             }
 
 
-
+            Internal_HandleBeforeGenCodeByAssemblies(domain);
             BindingCodeGenerator.GenerateBindingCode(domain, output_path, gen_valueTypes, gen_delegates);
             disGroup.Dispose();
             Debug.Log($"<color=#{TinaX.Internal.XEditorColorDefine.Color_Safe_16}>Generate code finish.</color>");

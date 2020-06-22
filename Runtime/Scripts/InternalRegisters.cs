@@ -1,4 +1,5 @@
-﻿using TinaX.XILRuntime.Internal.Adaptors;
+﻿using System;
+using TinaX.XILRuntime.Internal.Adaptors;
 
 namespace TinaX.XILRuntime.Internal
 {
@@ -7,6 +8,17 @@ namespace TinaX.XILRuntime.Internal
         internal static void RegisterDelegates(IXILRuntime xil)
         {
             xil.DelegateManager.RegisterMethodDelegate<TinaX.Container.IServiceContainer>();
+            xil.DelegateManager.RegisterMethodDelegate<UniRx.Unit>();
+            xil.DelegateManager.RegisterMethodDelegate<System.Exception>();
+
+            xil.DelegateManager.RegisterDelegateConvertor<UnityEngine.Events.UnityAction>((act) =>
+            {
+                return new UnityEngine.Events.UnityAction(() =>
+                {
+                    ((Action)act)();
+                });
+            });
+
         }
 
         internal static void RegisterCLRMethodRedirections(IXILRuntime xil)
