@@ -17,6 +17,7 @@ using ILRuntime.CLR.TypeSystem;
 using TinaX.Container;
 using ILRuntime.Reflection;
 using TinaX.XILRuntime.Utils;
+using TinaX.XILRuntime.Config;
 
 namespace TinaX.XILRuntime
 {
@@ -26,6 +27,9 @@ namespace TinaX.XILRuntime
         /// 是否要加载调试符号（默认以TinaX的开发模式来决定
         /// </summary>
         public bool LoadSymbol { get; set; }
+
+        public DebugLogConfig DebugLogConfig { get; private set; } = new DebugLogConfig();
+
         public DelegateManager DelegateManager => m_AppDomain?.DelegateManager;
         public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
 
@@ -140,6 +144,37 @@ namespace TinaX.XILRuntime
                 return m_AppDomain.Instantiate(type.FullName, args);
             else
                 return Activator.CreateInstance(type, args);
+        }
+
+        public object CreateInstanceAndInject(Type type)
+        {
+            var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+            //找到可注入的ctor
+            foreach (var ctor in ctors)
+            {
+                var ctor_params = ctor.GetParameters();
+                List<object> param_objs = new List<object>();
+                bool flag = true;
+                foreach (var param in ctor_params)
+                {
+                    if (m_XServices.TryGet(XILUtil.GetCatLibServiceName(param.ParameterType), out var _service))
+                        param_objs.Add(_service);
+                    else
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
+
+                if (flag) //有可用的构造函数
+                {
+                    //this.CreateInstance(type, param_objs);
+                    var result = ctor.Invoke(param_objs.ToArray());
+                    this.InjectObject(result);
+                    return result;
+                }
+            }
+            throw new XException("[TinaX.Core] Create instance failed: No valid constructors, Type:" + type.FullName);
         }
 
         public void InjectObject(object target)

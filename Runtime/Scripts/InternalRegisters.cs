@@ -25,6 +25,7 @@ namespace TinaX.XILRuntime.Internal
         {
             //CLR重定向
             Redirect.RedirectXIL.Register(xil);
+            LitJson.JsonMapper.RegisterILRuntimeCLRRedirection(xil.ILRuntimeAppDomain);
         }
 
         internal static void RegisterCrossBindingAdaptors(IXILRuntime xil)

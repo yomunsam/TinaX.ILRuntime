@@ -25,6 +25,7 @@ namespace TinaX.XILRuntime.Internal.Redirect
 
             Register_IServiceContainer();
             Register_IXCore();
+            Register_UnityEngine_Debug();
         }
 
         /// <summary>

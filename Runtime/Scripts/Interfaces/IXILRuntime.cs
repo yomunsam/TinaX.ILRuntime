@@ -1,6 +1,7 @@
 ﻿using ILRuntime.Runtime.Enviorment;
 using System;
 using System.Reflection;
+using TinaX.XILRuntime.Config;
 
 namespace TinaX.XILRuntime
 {
@@ -9,8 +10,10 @@ namespace TinaX.XILRuntime
         bool LoadSymbol { get; set; }
         DelegateManager DelegateManager { get; }
         ILRuntime.Runtime.Enviorment.AppDomain ILRuntimeAppDomain { get; }
+        DebugLogConfig DebugLogConfig { get; }
 
         object CreateInstance(Type type, params object[] args);
+        object CreateInstanceAndInject(Type type);
         void InjectObject(object obj);
         void InvokeILMethod(string type, string method, params object[] args);
         IXILRuntime RegisterCLRMethodRedirection(MethodBase method, CLRRedirectionDelegate func);
