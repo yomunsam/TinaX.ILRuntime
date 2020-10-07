@@ -66,6 +66,9 @@ namespace TinaX.XILRuntime.Internal.Redirect
             mapping.Register("Type2ServiceName", 0, 1, Type2ServiceName_Type);
             mapping.Register("Type2ServiceName", 1, 0, Type2ServiceName_TService);
 
+            mapping.Register("Instance", 1, 1, Instance_TService_Object);
+
+
         }
 
         #region Get Services
@@ -631,6 +634,29 @@ namespace TinaX.XILRuntime.Internal.Redirect
             var tService = XILUtil.ITypeToService(genericArguments[0]);
 
             return ILIntepreter.PushObject(esp, mStack, tService);
+        }
+
+        //object Instance<TService>(object instance);
+        internal static StackObject* Instance_TService_Object(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 1 || method.ParameterCount != 1)
+            {
+                throw new EntryPointNotFoundException();
+            }
+
+            var tService = XILUtil.ITypeToService(genericArguments[0]);
+
+            var ptrOfThisMethod = ILIntepreter.Minus(esp, 1);
+            ptrOfThisMethod = ILIntepreter.GetObjectAndResolveReference(ptrOfThisMethod);
+
+            var instance =
+                (object)typeof(object).CheckCLRTypes(
+                    StackObject.ToObject(ptrOfThisMethod, intp.AppDomain, mStack));
+
+            intp.Free(ptrOfThisMethod);
+
+            return ILIntepreter.PushObject(ILIntepreter.Minus(esp, 1), mStack, XCore.GetMainInstance().Services.Instance(tService, instance));
         }
     }
 }
