@@ -1,6 +1,6 @@
 {
   "name": "io.nekonya.tinax.ilruntime",
-  "version": "6.6.3",
+  "version": "6.6.4",
   "displayName": "TinaX.ILRuntime",
   "description": "ILRuntime for TinaX Framework.",
   "unity": "2019.3",
