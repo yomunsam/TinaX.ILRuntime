@@ -1,6 +1,6 @@
 {
   "name": "io.nekonya.tinax.ilruntime",
-  "version": "6.6.4",
+  "version": "6.6.5",
   "displayName": "TinaX.ILRuntime",
   "description": "ILRuntime for TinaX Framework.",
   "unity": "2019.3",
@@ -18,6 +18,6 @@
   "type": "library",
   "dependencies": {
     "io.nekonya.tinax.core": "6.6.23",
-    "com.ourpalm.ilruntime": "1.6.6"
+    "com.ourpalm.ilruntime": "1.6.7"
   }
 }
