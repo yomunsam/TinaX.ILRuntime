@@ -39,7 +39,7 @@ openupm add io.nekonya.tinax.core
 
 请访问文档查看完整安装指引：[安装TinaX](https://tinax.corala.space/#/cmn-hans/tinax/install/install_tinax)
 
-针对`TinaX.ILRuntime`包的特殊安装说明请参考:[TinaX.ILRuntime - 安装特殊说明](http://tinax.corala.space/#/cmn-hans/ilruntime/README)
+针对`TinaX.ILRuntime`包的特殊安装说明请参考:[TinaX.ILRuntime - 安装特殊说明](https://tinax.corala.space/#/cmn-hans/ilruntime/README?id=%e5%ae%89%e8%a3%85%e7%89%b9%e6%ae%8a%e8%af%b4%e6%98%8e)
 
 <br><br>
 
