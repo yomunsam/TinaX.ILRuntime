@@ -1,4 +1,6 @@
+using System;
 using Cysharp.Threading.Tasks;
+using TinaX.Exceptions;
 using TinaX.Options;
 using TinaX.XILRuntime.Internal;
 using TinaX.XILRuntime.Options;
@@ -17,14 +19,13 @@ namespace TinaX.XILRuntime
 
         public async UniTask StartAsync()
         {
-            Debug.Log("喵1");
             var options = m_Options.Value;
-            Debug.Log("喵2");
             if (options.ApplyOptionsAsync != null)
                 await options.ApplyOptionsAsync(options);
 
-            Debug.Log("XIL Service :" + options.TestProp);
             await UniTask.CompletedTask;
+            throw new XException("喵异常");
+
         }
 
     }

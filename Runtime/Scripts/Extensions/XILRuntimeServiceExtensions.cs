@@ -2,6 +2,7 @@ using System;
 using TinaX.Options;
 using TinaX.Systems.Configuration;
 using TinaX.XILRuntime;
+using TinaX.XILRuntime.ConfigAssets;
 using TinaX.XILRuntime.Options;
 
 namespace TinaX.Services
@@ -17,7 +18,10 @@ namespace TinaX.Services
         public static IXCore AddILRuntime(this IXCore core)
         {
             core.Services.AddOptions();
-            core.Services.Configure<XILRuntimeOptions>(options => { });
+            core.Services.Configure<XILRuntimeOptions>(options =>
+            {
+                options.ApplyOptionsFromConfigAsset();
+            });
 
             core.AddModule(new XILRuntimeModule());
             return core;
