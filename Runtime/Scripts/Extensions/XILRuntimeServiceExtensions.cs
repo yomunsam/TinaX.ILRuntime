@@ -36,10 +36,7 @@ namespace TinaX.Services
         public static IXCore AddILRuntime(this IXCore core, Action<XILRuntimeOptions> ilruntimeOptions)
         {
             core.Services.AddOptions();
-            if (ilruntimeOptions != null)
-                core.Services.Configure<XILRuntimeOptions>(ilruntimeOptions);
-            else
-                core.Services.Configure<XILRuntimeOptions>(options => { });
+            core.Services.Configure<XILRuntimeOptions>(ilruntimeOptions);
 
             core.AddModule(new XILRuntimeModule());
             return core;

@@ -1,10 +1,7 @@
-using System;
 using Cysharp.Threading.Tasks;
-using TinaX.Exceptions;
 using TinaX.Options;
 using TinaX.XILRuntime.Internal;
 using TinaX.XILRuntime.Options;
-using UnityEngine;
 
 namespace TinaX.XILRuntime
 {
@@ -23,9 +20,10 @@ namespace TinaX.XILRuntime
             if (options.ApplyOptionsAsync != null)
                 await options.ApplyOptionsAsync(options);
 
-            await UniTask.CompletedTask;
-            throw new XException("喵异常");
+            if (!options.Enable)
+                return;
 
+            await UniTask.CompletedTask;
         }
 
     }
