@@ -28,7 +28,7 @@ namespace TinaX.XILRuntime
 #if TINAX_DEV
             Debug.Log("XILRuntime Module 开始启动");
 #endif
-            await services.Get<IXILRuntimeInternal>().StartAsync();
+            await services.Get<IXILRuntimeInternal>().StartAsync(cancellationToken);
             return ModuleBehaviourResult.CreateSuccess(ModuleName);
             //return UniTask.FromResult(ModuleBehaviourResult.CreateSuccess(ModuleName));
         }

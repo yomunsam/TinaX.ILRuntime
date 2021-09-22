@@ -20,7 +20,6 @@ namespace TinaX.Services
             core.Services.AddOptions();
             core.Services.Configure<XILRuntimeOptions>(options =>
             {
-                options.ApplyOptionsFromConfigAsset();
             });
 
             core.AddModule(new XILRuntimeModule());
