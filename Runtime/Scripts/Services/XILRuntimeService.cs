@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using ILRuntime.CLR.TypeSystem;
 using ILRuntime.Mono.Cecil.Pdb;
+using ILRuntime.Runtime.Enviorment;
 using TinaX.Exceptions;
 using TinaX.Options;
 using TinaX.Services;
@@ -16,6 +19,8 @@ using TinaX.XILRuntime.Options;
 using TinaX.XILRuntime.Structs;
 using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+using AppDomain = System.AppDomain;
+using TinaX.XILRuntime.Adaptors;
 
 namespace TinaX.XILRuntime
 {
@@ -57,7 +62,12 @@ namespace TinaX.XILRuntime
         private bool m_Initialized;
         private IAssemblyLoader m_AssemblyLoader;
 
-
+        /// <summary>
+        /// 启动
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="XException"></exception>
         public async UniTask StartAsync(CancellationToken cancellationToken = default)
         {
             if (m_Initialized)
@@ -76,6 +86,7 @@ namespace TinaX.XILRuntime
             RegisterCLRMethodRedirections(m_AppDomain);
 
             //注册委托适配器
+            this.RegisterCrossBindingAdaptors();
 
             //注册跨域适配器
 
@@ -99,6 +110,74 @@ namespace TinaX.XILRuntime
 
             m_Initialized = true;
         }
+
+        public async UniTask InvokeEntryMethodAsync()
+        {
+            if (m_ConfigAsset == null || !m_Options.Enable)
+                return;
+            if (m_ConfigAsset.EntryClass.IsNullOrEmpty()
+                || m_ConfigAsset.EntryMethod.IsNullOrEmpty()
+                || m_ConfigAsset.EntryClass.IsNullOrWhiteSpace()
+                || m_ConfigAsset.EntryMethod.IsNullOrWhiteSpace())
+            {
+                Debug.LogWarningFormat("[{0}] Invalid entry class name or method name", XILConsts.ModuleName);
+                return;
+            }
+
+            //反射获取入口方法
+            IType t_entry = m_AppDomain.LoadedTypes[m_ConfigAsset.EntryClass];
+            if (t_entry == null)
+            {
+                Debug.LogErrorFormat("[{0}]Entry class not found by name:{1}", XILConsts.ModuleName, m_ConfigAsset.EntryClass);
+                return;
+            }
+            var m_entry = t_entry.GetMethod(m_ConfigAsset.EntryMethod, 0);
+            if (m_entry == null)
+            {
+                Debug.LogErrorFormat("[{0}]Entry method not found by name:\"{1}\" in class \"{2}\"", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, m_ConfigAsset.EntryClass);
+                return;
+            }
+            if (!m_entry.IsStatic)
+            {
+                Debug.LogErrorFormat("[{0}]Entry method \"{1}\" (class \"{2}\") must be static.", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, m_ConfigAsset.EntryClass);
+                return;
+            }
+
+            try
+            {
+                var result = m_AppDomain.Invoke(m_entry, null);
+                if (result != null)
+                {
+                    if (result is UniTask)
+                    {
+                        await (UniTask)result;
+                    }
+                    else if (result is Task)
+                    {
+                        await (Task)result;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        //------各种注册操作们--------------
+        #region Various registration operations
+
+        /// <summary>
+        /// 注册 跨域适配器
+        /// </summary>
+        /// <param name="adaptor"></param>
+        /// <returns></returns>
+        public IXILRuntime RegisterCrossBindingAdaptor(CrossBindingAdaptor adaptor)
+        {
+            m_AppDomain.RegisterCrossBindingAdaptor(adaptor);
+            return this;
+        }
+        #endregion
 
 
         private UniTask<XILRuntimeConfigAsset> LoadConfigAssetAsync(string loadPath, CancellationToken cancellationToken)
@@ -237,6 +316,14 @@ namespace TinaX.XILRuntime
             }
             else
                 Debug.LogWarning($"[{XILConsts.ModuleName}] CLR binding failed. Generated code not found");
+        }
+
+        /// <summary>
+        /// 内部方法：注册跨域继承适配器
+        /// </summary>
+        private void RegisterCrossBindingAdaptors()
+        {
+            XILAdaptorRegisters.RegisterCrossBindingAdaptors(this);
         }
 
     }
