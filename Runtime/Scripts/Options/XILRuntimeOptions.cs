@@ -9,7 +9,8 @@ namespace TinaX.XILRuntime.Options
         /// </summary>
         public bool Enable { get; set; } = true;
 
-
         public string ConfigAssetLoadPath { get; set; } = XILConsts.DefaultConfigAssetName;
+
+        public int DefaultJitFlags = 0;
     }
 }

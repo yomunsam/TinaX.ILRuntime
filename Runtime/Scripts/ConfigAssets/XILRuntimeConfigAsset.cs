@@ -20,5 +20,7 @@ namespace TinaX.XILRuntime.ConfigAssets
 
         public string EntryClass;
         public string EntryMethod;
+
+        public AssemblyLoaderAsset AssemblyLoaderAsset;
     }
 }
