@@ -15,7 +15,7 @@ namespace TinaX.XILRuntime.ConfigAssets
             LoadAssemblies = new List<AssemblyLoadInfo>();
         }
 
-        public bool Enable = true;
+        //public bool Enable = true;
         public List<AssemblyLoadInfo> LoadAssemblies;
 
         public string EntryClass;

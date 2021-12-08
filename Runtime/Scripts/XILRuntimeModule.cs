@@ -5,13 +5,16 @@ using TinaX.Container;
 using TinaX.Core.Behaviours;
 using TinaX.Module;
 using TinaX.Modules;
+using TinaX.Services;
 using TinaX.XILRuntime.Behaviour;
 using TinaX.XILRuntime.Consts;
 using TinaX.XILRuntime.Internal;
+using TinaX.XILRuntime.Services;
 using UnityEngine;
 
 namespace TinaX.XILRuntime
 {
+    [ModuleProviderOrder(85)]
     public class XILRuntimeModule : IModuleProvider
     {
 
@@ -36,6 +39,9 @@ namespace TinaX.XILRuntime
             Debug.Log("XILRuntime Module 开始启动");
 #endif
             await services.Get<IXILRuntimeInternal>().StartAsync(cancellationToken);
+            //启动完成之后, 注册TinaX.ILRuntime的实例创建器
+            services.RegisterInstanceCreator(new XILInstanceCreator(services.Get<IXILRuntime>()));
+
             return ModuleBehaviourResult.CreateSuccess(ModuleName);
         }
 

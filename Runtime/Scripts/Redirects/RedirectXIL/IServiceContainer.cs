@@ -16,21 +16,44 @@ namespace TinaX.XILRuntime.Redirects
         {
             GetMappingOrCreate(typeof(TinaX.Container.IServiceContainer), out var mapping);
 
+            //Get Services
+            mapping.Register("Get", 1, 1, Get_TService_ArrObject);
+
             //Add Services
             mapping.Register("Singleton", 2, 0, Singleton_TService_TConcrete);
+
+            GetMappingOrCreate(typeof(TinaX.Container.Internal.IGetServices), out var mapping2);
+            mapping2.Register("Get", 1, 1, Get_TService_ArrObject);
+
         }
 
         //TService Get<TService>(params object[] userParams);
-        //private static StackObject* Get_TService_ArrObject(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
-        //{
-        //    var genericArguments = method.GenericArguments;
-        //    if (genericArguments == null || genericArguments.Length != 1 || method.ParameterCount != 1)
-        //    {
-        //        throw new EntryPointNotFoundException();
-        //    }
+        private static StackObject* Get_TService_ArrObject(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        {
+            var genericArguments = method.GenericArguments;
+            if (genericArguments == null || genericArguments.Length != 1 || method.ParameterCount != 1)
+            {
+                throw new EntryPointNotFoundException();
+            }
 
 
-        //}
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(esp, 2);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 1);
+            System.Object[] userParams = (System.Object[])typeof(System.Object[]).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, mStack), (ILRuntime.CLR.Utils.Extensions.TypeFlags)0);
+            intp.Free(ptr_of_this_method);
+
+            ptr_of_this_method = ILIntepreter.Minus(esp, 2);
+            TinaX.Container.IServiceContainer instance_of_this_method = (TinaX.Container.IServiceContainer)typeof(TinaX.Container.IServiceContainer).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, mStack), (ILRuntime.CLR.Utils.Extensions.TypeFlags)0);
+            intp.Free(ptr_of_this_method);
+
+            var serviceName = instance_of_this_method.GetServiceNameByIType(genericArguments[0]);
+
+            var result_of_this_method = instance_of_this_method.Get(serviceName, userParams);
+            return ILIntepreter.PushObject(__ret, mStack, result_of_this_method);
+        }
 
 
         //IBindData Singleton<TService, TConcrete>();
@@ -54,7 +77,6 @@ namespace TinaX.XILRuntime.Redirects
             var tConcrete = XILHelper.ITypeToClrType(genericArguments[1]);
 
             var result_of_this_method = instance_of_this_method.Bind(serviceName, tConcrete, true);
-            Debug.LogFormat("热更工程绑定：{0} --> {1}", serviceName, tConcrete.FullName);
             return ILIntepreter.PushObject(esp, mStack, result_of_this_method);
         }
     }

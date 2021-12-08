@@ -1,5 +1,6 @@
 {
     "name": "TinaX.ILRuntime.Editor",
+    "rootNamespace": "TinaXEditor.XILRuntime",
     "references": [
         "TinaX.ILRuntime",
         "TinaX.Core",

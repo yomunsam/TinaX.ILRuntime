@@ -23,6 +23,8 @@ using AppDomain = System.AppDomain;
 using TinaX.XILRuntime.Adaptors;
 using System.Reflection;
 using TinaX.XILRuntime.Redirects;
+using TinaX.Core.Helper.LogColor;
+using ILRuntime.Reflection;
 
 namespace TinaX.XILRuntime
 {
@@ -67,6 +69,8 @@ namespace TinaX.XILRuntime
 
         public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
 
+        public string ImplementerName => throw new NotImplementedException();
+
 
         /// <summary>
         /// 启动
@@ -100,7 +104,7 @@ namespace TinaX.XILRuntime
             RegisterGeneratorCLRBindingCode();
 
             //Assembly Loader
-            if(m_ConfigAsset.AssemblyLoaderAsset != null)
+            if (m_ConfigAsset.AssemblyLoaderAsset != null)
             {
                 m_AssemblyLoader = m_ConfigAsset.AssemblyLoaderAsset.CreateAssemblyLoader(m_Xcore);
             }
@@ -196,6 +200,7 @@ namespace TinaX.XILRuntime
             return this;
         }
         #endregion
+
 
 
         private UniTask<XILRuntimeConfigAsset> LoadConfigAssetAsync(string loadPath, CancellationToken cancellationToken)
@@ -326,7 +331,7 @@ namespace TinaX.XILRuntime
                 {
                     method.Invoke(null, new object[] { m_AppDomain });
 #if TINAX_DEV
-                    Debug.Log("<color=green>已执行CLR生成代码的注册</color>");
+                    Debug.Log(LogColorHelper.SuccessLog("已执行CLR生成代码的注册"));
 #endif
                 }
                 else
@@ -344,5 +349,6 @@ namespace TinaX.XILRuntime
             XILAdaptorRegisters.RegisterCrossBindingAdaptors(this);
         }
 
+        
     }
 }
