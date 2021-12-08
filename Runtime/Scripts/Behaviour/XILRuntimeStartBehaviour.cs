@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
 using TinaX.Container;
 using TinaX.Core.Behaviours;
 using TinaX.XILRuntime.Internal;
@@ -16,7 +17,7 @@ namespace TinaX.XILRuntime.Behaviour
 
         public int StartOrder { get; set; } = 0;
 
-        public async UniTask StartAsync()
+        public async UniTask StartAsync(CancellationToken cancellationToken = default)
         {
             var ilruntimeService = m_Services.Get<IXILRuntimeInternal>();
             await ilruntimeService.InvokeEntryMethodAsync();

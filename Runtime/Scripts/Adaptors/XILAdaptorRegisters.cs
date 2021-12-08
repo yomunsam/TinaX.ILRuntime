@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TinaX.XILRuntime.Adaptors.Async;
+﻿using TinaX.XILRuntime.Adaptors.Async;
+using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 
 namespace TinaX.XILRuntime.Adaptors
 {
@@ -18,7 +14,12 @@ namespace TinaX.XILRuntime.Adaptors
         /// <param name="xil"></param>
         public static void RegisterCrossBindingAdaptors(IXILRuntime xil)
         {
-            xil.RegisterCrossBindingAdaptor(new IAsyncStateMachineClassInheritanceAdaptor());
+            RegisterCrossBindingAdaptors(xil.ILRuntimeAppDomain);
+        }
+
+        public static void RegisterCrossBindingAdaptors(ILAppDomain appdomain) 
+        {
+            appdomain.RegisterCrossBindingAdaptor(new IAsyncStateMachineClassInheritanceAdaptor());
         }
     }
 }

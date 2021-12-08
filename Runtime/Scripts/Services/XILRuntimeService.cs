@@ -21,6 +21,8 @@ using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using AppDomain = System.AppDomain;
 using TinaX.XILRuntime.Adaptors;
+using System.Reflection;
+using TinaX.XILRuntime.Redirects;
 
 namespace TinaX.XILRuntime
 {
@@ -61,6 +63,10 @@ namespace TinaX.XILRuntime
         private XILRuntimeConfigAsset m_ConfigAsset;
         private bool m_Initialized;
         private IAssemblyLoader m_AssemblyLoader;
+
+
+        public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
+
 
         /// <summary>
         /// 启动
@@ -177,6 +183,18 @@ namespace TinaX.XILRuntime
             m_AppDomain.RegisterCrossBindingAdaptor(adaptor);
             return this;
         }
+
+        /// <summary>
+        /// 注册 CLR 方法重定向
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public IXILRuntime RegisterCLRMethodRedirection(MethodBase method, CLRRedirectionDelegate func)
+        {
+            m_AppDomain.RegisterCLRMethodRedirection(method, func);
+            return this;
+        }
         #endregion
 
 
@@ -277,7 +295,7 @@ namespace TinaX.XILRuntime
         /// </summary>
         private void RegisterCLRMethodRedirections(ILAppDomain appDomain)
         {
-
+            XILRedirectRegisters.RegisterCLRMethodRedirections(this);
         }
 
         /// <summary>
