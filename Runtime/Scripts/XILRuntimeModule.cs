@@ -5,11 +5,9 @@ using TinaX.Container;
 using TinaX.Core.Behaviours;
 using TinaX.Module;
 using TinaX.Modules;
-using TinaX.Services;
 using TinaX.XILRuntime.Behaviour;
 using TinaX.XILRuntime.Consts;
 using TinaX.XILRuntime.Internal;
-using TinaX.XILRuntime.Services;
 using UnityEngine;
 
 namespace TinaX.XILRuntime
@@ -40,13 +38,27 @@ namespace TinaX.XILRuntime
 #endif
             await services.Get<IXILRuntimeInternal>().StartAsync(cancellationToken);
             //启动完成之后, 注册TinaX.ILRuntime的实例创建器
-            services.RegisterInstanceCreator(new XILInstanceCreator(services.Get<IXILRuntime>()));
-
+            var xil = services.Get<IXILRuntime>();
+            if (xil.InsatnceCreator != null)
+                services.Get<IXCore>().Activator.RegisterCreator(xil.InsatnceCreator);
+            if(xil.Serviceinjector != null)
+                services.RegisterServiceInjector(xil.Serviceinjector);
             return ModuleBehaviourResult.CreateSuccess(ModuleName);
         }
 
         public UniTask OnRestartAsync(IServiceContainer services, CancellationToken cancellationToken)
-            => UniTask.CompletedTask;
+        {
+            var xil = services.Get<IXILRuntime>();
+            if(xil.InsatnceCreator != null)
+            {
+                services.Get<IXCore>().Activator.RemoveCreator(xil.InsatnceCreator);
+            }
+            if(xil.Serviceinjector != null)
+            {
+                services.RemoveServiceInjector(xil.Serviceinjector);
+            }
+            return UniTask.CompletedTask;
+        }
 
         public void OnQuit() { }
 

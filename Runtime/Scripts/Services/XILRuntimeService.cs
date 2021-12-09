@@ -25,6 +25,13 @@ using System.Reflection;
 using TinaX.XILRuntime.Redirects;
 using TinaX.Core.Helper.LogColor;
 using ILRuntime.Reflection;
+using TinaX.XILRuntime.CreateInstance;
+using TinaX.Core.Activator;
+using System.Linq;
+using TinaX.Core.Extensions;
+using TinaX.XILRuntime.Extensions.ServiceContainer;
+using TinaX.XILRuntime.ServiceInjector;
+using TinaX.Core.Container;
 
 namespace TinaX.XILRuntime
 {
@@ -48,6 +55,7 @@ namespace TinaX.XILRuntime
         private readonly Dictionary<string, Stream> m_LoadedAssemblies = new Dictionary<string, Stream>();
         private readonly Dictionary<string, Stream> m_LoadedSymbols = new Dictionary<string, Stream>();
 
+
         public XILRuntimeService(IOptions<XILRuntimeOptions> options,
             IConfigAssetService configAssetService,
             IXCore xCore)
@@ -65,12 +73,13 @@ namespace TinaX.XILRuntime
         private XILRuntimeConfigAsset m_ConfigAsset;
         private bool m_Initialized;
         private IAssemblyLoader m_AssemblyLoader;
-
+        private XILInstanceCreator m_InsatnceCreator;
+        private XILServiceInjector m_ServiceInjector;
 
         public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
 
-        public string ImplementerName => throw new NotImplementedException();
-
+        public ICreateInstance InsatnceCreator => m_InsatnceCreator;
+        public IServiceInjector Serviceinjector => m_ServiceInjector;
 
         /// <summary>
         /// 启动
@@ -84,6 +93,9 @@ namespace TinaX.XILRuntime
                 return;
             if (!m_Options.Enable)
                 return;
+
+            m_InsatnceCreator = new XILInstanceCreator(this);
+            m_ServiceInjector = new XILServiceInjector();
 
             //加载配置资产
             m_ConfigAsset = await LoadConfigAssetAsync(m_Options.ConfigAssetLoadPath, cancellationToken);
@@ -135,27 +147,53 @@ namespace TinaX.XILRuntime
             }
 
             //反射获取入口方法
-            IType t_entry = m_AppDomain.LoadedTypes[m_ConfigAsset.EntryClass];
+            IType t_entry = m_AppDomain.GetType(m_ConfigAsset.EntryClass);
+            //IType t_entry = m_AppDomain.LoadedTypes[m_ConfigAsset.EntryClass];
             if (t_entry == null)
             {
                 Debug.LogErrorFormat("[{0}]Entry class not found by name:{1}", XILConsts.ModuleName, m_ConfigAsset.EntryClass);
                 return;
             }
-            var m_entry = t_entry.GetMethod(m_ConfigAsset.EntryMethod, 0);
-            if (m_entry == null)
+            var methods = t_entry.GetMethods();
+            var entry_methods = methods.Where(m => m.Name == m_ConfigAsset.EntryMethod && m.IsStatic).ToArray();
+            if(entry_methods.Length == 0)
             {
-                Debug.LogErrorFormat("[{0}]Entry method not found by name:\"{1}\" in class \"{2}\"", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, m_ConfigAsset.EntryClass);
+                if (m_Xcore.IsHans())
+                    Debug.LogErrorFormat("[{0}]没有在类\"{1}\"中找到入口方法\"{2}\"", XILConsts.ModuleName, m_ConfigAsset.EntryClass, m_ConfigAsset.EntryMethod);
+                else
+                    Debug.LogErrorFormat("[{0}]Entry method not found by name:\"{1}\" in class \"{2}\"", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, m_ConfigAsset.EntryClass);
                 return;
             }
-            if (!m_entry.IsStatic)
+            if(entry_methods.Length > 1)
             {
-                Debug.LogErrorFormat("[{0}]Entry method \"{1}\" (class \"{2}\") must be static.", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, m_ConfigAsset.EntryClass);
+                if (m_Xcore.IsHans())
+                    Debug.LogErrorFormat("[{0}]类\"{1}\"中找到多个同名入口方法\"{2}\"", XILConsts.ModuleName, m_ConfigAsset.EntryClass, m_ConfigAsset.EntryMethod);
+                else
+                    Debug.LogErrorFormat("[{0}]There cannot be multiple entry methods \"{1}\" with the same name in class \"{2}\"", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, m_ConfigAsset.EntryClass);
                 return;
             }
 
+            var entry_method = entry_methods[0];
+            List<object> entry_method_args = new List<object>(entry_method.ParameterCount);
+            for(int i = 0; i < entry_method.ParameterCount; i++)
+            {
+                string serviceName = m_Xcore.Services.GetServiceNameByIType(entry_method.Parameters[i]);
+                if(m_Xcore.Services.TryGet(serviceName, out object service))
+                {
+                    entry_method_args.Add(service);
+                }
+                else
+                {
+                    if (m_Xcore.IsHans())
+                        Debug.LogErrorFormat("[{0}]入口方法\"{1}\"的参数类型\"{2}\"无法被识别注入", XILConsts.ModuleName, m_ConfigAsset.EntryMethod, entry_method.Parameters[i].Name);
+                    else
+                        Debug.LogErrorFormat("[{0}]The parameter type \"{1}\" of the entry method \"{2}\" cannot be injected", XILConsts.ModuleName, entry_method.Parameters[i].Name, m_ConfigAsset.EntryMethod);
+                    return;
+                }
+            }
             try
             {
-                var result = m_AppDomain.Invoke(m_entry, null);
+                var result = m_AppDomain.Invoke(entry_method, null, entry_method_args.ToArray());
                 if (result != null)
                 {
                     if (result is UniTask)
@@ -168,7 +206,7 @@ namespace TinaX.XILRuntime
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogException(ex);
             }

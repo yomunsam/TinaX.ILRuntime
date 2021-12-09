@@ -1,11 +1,15 @@
 using System.Reflection;
 using ILRuntime.Runtime.Enviorment;
+using TinaX.Core.Activator;
+using TinaX.Core.Container;
 
 namespace TinaX.XILRuntime
 {
     public interface IXILRuntime
     {
         AppDomain ILRuntimeAppDomain { get; }
+        ICreateInstance InsatnceCreator { get; }
+        IServiceInjector Serviceinjector { get; }
 
         /// <summary>
         /// 注册 CLR 方法重定向
