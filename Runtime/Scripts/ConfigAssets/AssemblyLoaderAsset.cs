@@ -8,6 +8,6 @@ namespace TinaX.XILRuntime.ConfigAssets
     [Serializable]
     public abstract class AssemblyLoaderAsset : ScriptableObject
     {
-        public abstract IAssemblyLoader CreateAssemblyLoader(IXCore services);
+        public abstract IAssemblyLoader CreateAssemblyLoader(IXCore core);
     }
 }

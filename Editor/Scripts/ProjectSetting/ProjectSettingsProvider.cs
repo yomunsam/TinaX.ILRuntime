@@ -4,6 +4,7 @@ using TinaX.XILRuntime.ConfigAssets;
 using TinaX.XILRuntime.Consts;
 using TinaXEditor.Core;
 using TinaXEditor.Core.Consts;
+using TinaXEditor.Core.Utils.Localization;
 using TinaXEditor.XILRuntime.ConfigAssets;
 using TinaXEditor.XILRuntime.Generator;
 using UnityEditor;
@@ -79,6 +80,9 @@ namespace TinaXEditor.XILRuntime.ProjectSetting
                         EditorGUILayout.PropertyField(_configAssetSerializedObject.FindProperty("EntryMethod"), new GUIContent(L.EntryMethodName));
                         GUILayout.Space(3);
                         EditorGUILayout.HelpBox(L.EntryTips, MessageType.None);
+
+                        GUILayout.Space(10);
+                        EditorGUILayout.PropertyField(_configAssetSerializedObject.FindProperty("AssemblyLoaderAsset"), new GUIContent(L.AssemblyLoaderAsset));
 
                         if (_editorConfigAsset != null)
                         {
@@ -226,16 +230,9 @@ namespace TinaXEditor.XILRuntime.ProjectSetting
 
             public Localizer()
             {
-                IsHans = Application.systemLanguage == SystemLanguage.Chinese 
-                    || Application.systemLanguage == SystemLanguage.ChineseSimplified 
-                    || Application.systemLanguage == SystemLanguage.ChineseTraditional;
+                IsHans = EditorLocalizationUtil.IsHans();
 
-                IsJp = Application.systemLanguage == SystemLanguage.Japanese;
-
-#if TINAX_EDITOR_UI_ENGLISH
-                IsHans = false;
-                IsJp = false;
-#endif
+                IsJp = EditorLocalizationUtil.IsJapanese();
             }
 
             public string NoConfig
@@ -361,6 +358,16 @@ namespace TinaXEditor.XILRuntime.ProjectSetting
                     if (IsJp)
                         return "バインディングコードを生成する";
                     return "Generate binding code";
+                }
+            }
+
+            public string AssemblyLoaderAsset
+            {
+                get
+                {
+                    if (IsHans)
+                        return "Assembly 加载器 资产";
+                    return "AssemblyLoaderAsset";
                 }
             }
 

@@ -9,10 +9,10 @@ namespace TinaX.XILRuntime.Loader
         /// <summary>
         /// Assembly 流
         /// </summary>
-        public MemoryStream AssemblyStream { get; set; }
+        public Stream AssemblyStream { get; set; }
 
         public string SymbolPath { get; set; }
-        public MemoryStream SymbolStream { get; set; }
+        public Stream SymbolStream { get; set; }
 
 
         public AssemblyLoadResult() { }

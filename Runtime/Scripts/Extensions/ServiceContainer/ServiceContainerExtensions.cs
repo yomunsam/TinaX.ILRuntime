@@ -2,12 +2,13 @@
 using ILRuntime.CLR.TypeSystem;
 using ILRuntime.Reflection;
 using TinaX.Container;
+using TinaX.Container.Internal;
 
 namespace TinaX.XILRuntime.Extensions.ServiceContainer
 {
     public static class ServiceContainerExtensions
     {
-        public static string GetServiceNameByIType(this IServiceContainer services, IType type)
+        public static string GetServiceNameByIType(this IGetServices services, IType type)
         {
             var ilType = type as ILType;
             return ilType != null ? ilType.FullName : services.GetServiceName(type.TypeForCLR);

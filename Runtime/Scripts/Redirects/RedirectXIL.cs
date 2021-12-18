@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace TinaX.XILRuntime.Redirects
 {
@@ -27,7 +26,9 @@ namespace TinaX.XILRuntime.Redirects
             m_Mappings = new Dictionary<Type,RedirectMapping>();
 
             Register_UnityEngine_Debug();
-            Register_IServiceContainer();
+            Register_TinaX_Container_IServiceContainer();
+            Register_TinaX_Container_IGetServices();
+            Register_TinaX_XILRuntime_LogOptions();
         }
 
         /// <summary>

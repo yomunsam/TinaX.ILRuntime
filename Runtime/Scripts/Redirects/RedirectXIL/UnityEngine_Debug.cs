@@ -3,6 +3,8 @@ using ILRuntime.CLR.Method;
 using ILRuntime.CLR.Utils;
 using ILRuntime.Runtime.Intepreter;
 using ILRuntime.Runtime.Stack;
+using TinaX.Core.Helper.LogColor;
+using TinaX.Core.Utils;
 using UnityEngine;
 
 namespace TinaX.XILRuntime.Redirects
@@ -19,6 +21,8 @@ namespace TinaX.XILRuntime.Redirects
             mapping.Register("Log", 0, 1, Log_Message);
         }
 
+        private static bool isHans = LocalizationUtil.IsHans();
+
         static StackObject* Log_Message(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
@@ -31,16 +35,26 @@ namespace TinaX.XILRuntime.Redirects
             //清理堆栈
             __intp.Free(ptr_of_this_method);
 
-            //if (LogStackTrace)
-            //{
-            //    string stackTrace = __domain.DebugService.GetStackTrace(__intp);
-            //    UnityEngine.Debug.Log($"{GetLogMessage(message)}\n\nStackTrace:\n{stackTrace}");
-            //}
-            //else
-            //    UnityEngine.Debug.Log(GetLogMessage(message));
+            
+            bool log_available = true;      //可否输出
+            bool enable_stackTrace = LogOptions.StackTraceLog;  //打印堆栈跟踪
+            if (!LogOptions.Enable || !LogOptions.EnableLog)
+            {
+                log_available = false; //可否输出日志的总开关
+            }
 
-            string stackTrace = __domain.DebugService.GetStackTrace(__intp);
-            Debug.Log(string.Format("{0}\n{1}", message, stackTrace));
+            if (log_available)
+            {
+                if (enable_stackTrace)
+                {
+                    string stackTrace = __domain.DebugService.GetStackTrace(__intp);
+                    Debug.Log($"{(LogOptions.EnablePrefix ? LogOptions.PrefixText : string.Empty)}{message}\n\n<color=#{LogColorHelper.Color_Primary_16}>{(isHans ? "堆栈跟踪：" : "StackTrace:")}</color>\n{stackTrace}\n");
+                }
+                else
+                {
+                    Debug.Log($"{(LogOptions.EnablePrefix ? LogOptions.PrefixText : string.Empty)}{message}");
+                }
+            }
 
             return __ret;
         }

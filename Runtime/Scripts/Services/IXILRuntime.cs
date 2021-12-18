@@ -10,6 +10,7 @@ namespace TinaX.XILRuntime
         AppDomain ILRuntimeAppDomain { get; }
         ICreateInstance InsatnceCreator { get; }
         IServiceInjector Serviceinjector { get; }
+        DelegateManager DelegateManager { get; }
 
         /// <summary>
         /// 注册 CLR 方法重定向

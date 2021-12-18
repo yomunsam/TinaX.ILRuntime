@@ -11,6 +11,9 @@ namespace TinaX.XILRuntime.Options
 
         public string ConfigAssetLoadPath { get; set; } = XILConsts.DefaultConfigAssetName;
 
-        public int DefaultJitFlags = 0;
+
+        public bool UseLitJson { get; set; } = true;
+
+        public int DefaultJitFlags { get; set; } = 0;
     }
 }

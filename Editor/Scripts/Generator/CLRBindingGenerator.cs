@@ -9,6 +9,7 @@ using TinaX.Core.Utils;
 using TinaX.XILRuntime.Adaptors;
 using TinaX.XILRuntime.Consts;
 using TinaXEditor.XILRuntime.ConfigAssets;
+using TinaXEditor.XILRuntime.Consts;
 using UnityEditor;
 using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
@@ -20,19 +21,7 @@ namespace TinaXEditor.XILRuntime.Generator
     /// </summary>
     public class CLRBindingGenerator
     {
-        /// <summary>
-        /// 内置的值类型定义
-        /// </summary>
-        private static List<Type> _InternalValueType = new List<Type>
-        {
-            typeof(Vector3),
-        };
-
-        private static List<Type> _InternalDelegateTypes = new List<Type>
-        {
-            //typeof(XException),
-            //typeof(Exception),
-        };
+        
 
         public static void GenerateByAnalysisFromConfiguration()
         {
@@ -44,6 +33,7 @@ namespace TinaXEditor.XILRuntime.Generator
                 return;
             }
             GenerateByAnalysis(conf.EditorLoadAssemblies.Select(a => a.AssemblyPath), output_path);
+            AssetDatabase.Refresh();
         }
 
         [MenuItem("TinaX/ILRuntime/Generator/Generate clr binding code")]
@@ -74,11 +64,11 @@ namespace TinaXEditor.XILRuntime.Generator
 
             if(valueTypeBinders == null)
                 valueTypeBinders = new List<Type>();
-            valueTypeBinders.AddRange(_InternalValueType);
+            valueTypeBinders.AddRange(CLRBindingGenerateConsts.ValueTypeConst);
 
             if(delegateTypes == null)
                 delegateTypes = new List<Type>();
-            delegateTypes.AddRange(_InternalDelegateTypes);
+            delegateTypes.AddRange(CLRBindingGenerateConsts.DelegateTypes);
 
             //反射所有配置接口
             Type t_define = typeof(ICLRBindingGenerateDefine);

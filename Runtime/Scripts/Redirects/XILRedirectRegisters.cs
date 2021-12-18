@@ -13,6 +13,14 @@
         {
             RedirectXIL.Register(xil); //内置CLR绑定
 
+        }
+
+        /// <summary>
+        /// 注册LitJson
+        /// </summary>
+        /// <param name="xil"></param>
+        public static void RegisterLitJson(IXILRuntime xil)
+        {
             LitJson.JsonMapper.RegisterILRuntimeCLRRedirection(xil.ILRuntimeAppDomain);
         }
     }

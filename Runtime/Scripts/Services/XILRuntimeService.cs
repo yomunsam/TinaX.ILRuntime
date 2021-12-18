@@ -32,6 +32,8 @@ using TinaX.Core.Extensions;
 using TinaX.XILRuntime.Extensions.ServiceContainer;
 using TinaX.XILRuntime.ServiceInjector;
 using TinaX.Core.Container;
+using ILRuntime.Runtime.CLRBinding;
+using TinaX.XILRuntime.Delegates;
 
 namespace TinaX.XILRuntime
 {
@@ -81,6 +83,8 @@ namespace TinaX.XILRuntime
         public ICreateInstance InsatnceCreator => m_InsatnceCreator;
         public IServiceInjector Serviceinjector => m_ServiceInjector;
 
+        public DelegateManager DelegateManager => m_AppDomain.DelegateManager;
+
         /// <summary>
         /// 启动
         /// </summary>
@@ -106,14 +110,19 @@ namespace TinaX.XILRuntime
 
             //注册CLR重定向
             RegisterCLRMethodRedirections(m_AppDomain);
+            if (m_Options.UseLitJson)
+            {
+                XILRedirectRegisters.RegisterLitJson(this);
+            }
 
             //注册委托适配器
-            this.RegisterCrossBindingAdaptors();
+            RegisterDelegateAdapters();
 
             //注册跨域适配器
+            RegisterCrossBindingAdaptors();
 
             //注册CLR绑定
-            RegisterGeneratorCLRBindingCode();
+            RegisterGeneratedCLRBindingCode();
 
             //Assembly Loader
             if (m_ConfigAsset.AssemblyLoaderAsset != null)
@@ -344,39 +353,9 @@ namespace TinaX.XILRuntime
         /// <summary>
         /// 内部方法：注册生成出来的CLR绑定代码
         /// </summary>
-        private void RegisterGeneratorCLRBindingCode()
+        private void RegisterGeneratedCLRBindingCode()
         {
-            /*
-             * 我们希望在framework里完成CLR绑定代码的自动注册
-             * 1. 这段生成代码不一定存在
-             * 2. XILRuntime无法确定这个代码会存在于哪个Assembly里
-             * 
-             * 所以，使用反射的方式进行调用
-             */
-            var assemblys = AppDomain.CurrentDomain.GetAssemblies();
-            Type type = null;
-            foreach (var asm in assemblys)
-            {
-                type = asm.GetType(c_CLRBind_GenCode_TypeName);
-                if (type != null)
-                    break;
-            }
-
-            if (type != null)
-            {
-                var method = type.GetMethod(c_CLRBind_GenCode_MethodName, new Type[] { typeof(ILAppDomain) });
-                if (method != null)
-                {
-                    method.Invoke(null, new object[] { m_AppDomain });
-#if TINAX_DEV
-                    Debug.Log(LogColorHelper.SuccessLog("已执行CLR生成代码的注册"));
-#endif
-                }
-                else
-                    Debug.LogError($"[{XILConsts.ModuleName}] CLR binding failed. Method \"Initialize\" not found");
-            }
-            else
-                Debug.LogWarning($"[{XILConsts.ModuleName}] CLR binding failed. Generated code not found");
+            CLRBindingUtils.Initialize(m_AppDomain); //这个方法在ILRuntime文档上没有！哼！
         }
 
         /// <summary>
@@ -387,6 +366,13 @@ namespace TinaX.XILRuntime
             XILAdaptorRegisters.RegisterCrossBindingAdaptors(this);
         }
 
+        /// <summary>
+        /// 内部方法：注册委托适配器
+        /// </summary>
+        private void RegisterDelegateAdapters()
+        {
+            XILDelegateRegisters.RegisterDelegateAdapters(this);
+        }
         
     }
 }

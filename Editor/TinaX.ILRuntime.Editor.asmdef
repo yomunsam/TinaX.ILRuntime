@@ -6,7 +6,8 @@
         "TinaX.Core",
         "TinaX.Core.Editor",
         "ILRuntime",
-        "UniRx"
+        "UniRx",
+        "UniTask"
     ],
     "includePlatforms": [
         "Editor"
