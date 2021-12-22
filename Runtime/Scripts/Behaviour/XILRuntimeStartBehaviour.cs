@@ -20,7 +20,8 @@ namespace TinaX.XILRuntime.Behaviour
         public async UniTask StartAsync(CancellationToken cancellationToken = default)
         {
             var ilruntimeService = m_Services.Get<IXILRuntimeInternal>();
-            await ilruntimeService.InvokeEntryMethodAsync();
+            if (ilruntimeService.Initialized)
+                await ilruntimeService.InvokeEntryMethodAsync();
         }
     }
 }

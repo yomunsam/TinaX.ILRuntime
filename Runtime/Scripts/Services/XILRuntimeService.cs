@@ -58,6 +58,7 @@ namespace TinaX.XILRuntime
         private readonly Dictionary<string, Stream> m_LoadedAssemblies = new Dictionary<string, Stream>();
         private readonly Dictionary<string, Stream> m_LoadedSymbols = new Dictionary<string, Stream>();
 
+        //------------构造函数们-----------------------------------------------------------------------------------------------------------
 
         public XILRuntimeService(IOptions<XILRuntimeOptions> options,
             IConfigAssetService configAssetService,
@@ -73,11 +74,17 @@ namespace TinaX.XILRuntime
 #endif
         }
 
+        //------------私有字段们---------------------------------------------------------------------------------------------------------------
+
         private XILRuntimeConfigAsset m_ConfigAsset;
         private bool m_Initialized;
         private IAssemblyLoader m_AssemblyLoader;
         private XILInstanceCreator m_InsatnceCreator;
         private XILServiceInjector m_ServiceInjector;
+
+
+
+        //------------公开属性们---------------------------------------------------------------------------------------------------------------
 
         public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
 
@@ -85,6 +92,11 @@ namespace TinaX.XILRuntime
         public IServiceInjector Serviceinjector => m_ServiceInjector;
 
         public DelegateManager DelegateManager => m_AppDomain.DelegateManager;
+
+        public bool Initialized => m_Initialized;
+
+
+        //------------公开方法们---------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// 启动

@@ -11,6 +11,7 @@ namespace TinaX.XILRuntime
         ICreateInstance InsatnceCreator { get; }
         IServiceInjector Serviceinjector { get; }
         DelegateManager DelegateManager { get; }
+        bool Initialized { get; }
 
         /// <summary>
         /// 注册 CLR 方法重定向
