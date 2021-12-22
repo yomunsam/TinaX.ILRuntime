@@ -34,6 +34,7 @@ using TinaX.XILRuntime.ServiceInjector;
 using TinaX.Core.Container;
 using ILRuntime.Runtime.CLRBinding;
 using TinaX.XILRuntime.Delegates;
+using TinaX.XILRuntime.Registers;
 
 namespace TinaX.XILRuntime
 {
@@ -106,6 +107,17 @@ namespace TinaX.XILRuntime
             if(m_ConfigAsset == null)
             {
                 throw new XException($"Failed to load configuration assets \"{m_Options.ConfigAssetLoadPath}\" ");
+            }
+
+            //注册管理器：这儿是外部从AddILRuntime时候收集到的各种注册项, 应该需要在我们内部所有注册之前进行
+            if(m_Xcore.Services.TryGet<RegisterManager>(out var regMgr))
+            {
+                var reg_e = regMgr.GetAll().GetEnumerator();
+                while (reg_e.MoveNext())
+                {
+                    var reg = reg_e.Current;
+                    reg?.Invoke(this);
+                }
             }
 
             //注册CLR重定向
@@ -205,9 +217,9 @@ namespace TinaX.XILRuntime
                 var result = m_AppDomain.Invoke(entry_method, null, entry_method_args.ToArray());
                 if (result != null)
                 {
-                    if (result is UniTask)
+                    if (result is UniTask unitask)
                     {
-                        await (UniTask)result;
+                        await unitask;
                     }
                     else if (result is Task)
                     {

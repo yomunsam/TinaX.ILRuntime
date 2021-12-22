@@ -10,6 +10,15 @@ namespace TinaX.XILRuntime.Delegates
         {
             xil.DelegateManager.RegisterMethodDelegate<Exception>();
             xil.DelegateManager.RegisterMethodDelegate<UObject, XException>();
+
+            //UnityAction
+            xil.DelegateManager.RegisterDelegateConvertor<UnityEngine.Events.UnityAction>((act) =>
+            {
+                return new UnityEngine.Events.UnityAction(() =>
+                {
+                    ((Action)act)();
+                });
+            });
         }
     }
 }
