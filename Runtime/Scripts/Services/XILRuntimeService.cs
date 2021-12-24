@@ -1,40 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using ILRuntime.CLR.TypeSystem;
 using ILRuntime.Mono.Cecil.Pdb;
+using ILRuntime.Runtime.CLRBinding;
 using ILRuntime.Runtime.Enviorment;
+using TinaX.Core.Activator;
+using TinaX.Core.Container;
+using TinaX.Core.Extensions;
 using TinaX.Exceptions;
 using TinaX.Options;
 using TinaX.Services;
 using TinaX.Services.ConfigAssets;
+using TinaX.XILRuntime.Adaptors;
 using TinaX.XILRuntime.ConfigAssets;
 using TinaX.XILRuntime.Consts;
+using TinaX.XILRuntime.CreateInstance;
+using TinaX.XILRuntime.Delegates;
+using TinaX.XILRuntime.Extensions.ServiceContainer;
 using TinaX.XILRuntime.Internal;
 using TinaX.XILRuntime.Loader;
 using TinaX.XILRuntime.Options;
+using TinaX.XILRuntime.Redirects;
+using TinaX.XILRuntime.Registers;
+using TinaX.XILRuntime.ServiceContainer;
 using TinaX.XILRuntime.Structs;
 using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
-using AppDomain = System.AppDomain;
-using TinaX.XILRuntime.Adaptors;
-using System.Reflection;
-using TinaX.XILRuntime.Redirects;
-using TinaX.Core.Helper.LogColor;
-using ILRuntime.Reflection;
-using TinaX.XILRuntime.CreateInstance;
-using TinaX.Core.Activator;
-using System.Linq;
-using TinaX.Core.Extensions;
-using TinaX.XILRuntime.Extensions.ServiceContainer;
-using TinaX.XILRuntime.ServiceInjector;
-using TinaX.Core.Container;
-using ILRuntime.Runtime.CLRBinding;
-using TinaX.XILRuntime.Delegates;
-using TinaX.XILRuntime.Registers;
 
 namespace TinaX.XILRuntime
 {
@@ -57,6 +54,7 @@ namespace TinaX.XILRuntime
 
         private readonly Dictionary<string, Stream> m_LoadedAssemblies = new Dictionary<string, Stream>();
         private readonly Dictionary<string, Stream> m_LoadedSymbols = new Dictionary<string, Stream>();
+        private readonly XILReflectionProvider m_TypeProvider;
 
         //------------构造函数们-----------------------------------------------------------------------------------------------------------
 
@@ -68,6 +66,7 @@ namespace TinaX.XILRuntime
             this.m_ConfigAssetService = configAssetService;
             this.m_Xcore = xCore;
             this.m_AppDomain = new ILAppDomain(m_Options.DefaultJitFlags);
+            this.m_TypeProvider = new XILReflectionProvider();
 
 #if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
             m_AppDomain.UnityMainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
@@ -80,7 +79,7 @@ namespace TinaX.XILRuntime
         private bool m_Initialized;
         private IAssemblyLoader m_AssemblyLoader;
         private XILInstanceCreator m_InsatnceCreator;
-        private XILServiceInjector m_ServiceInjector;
+        //private XILServiceInjector m_ServiceInjector;
 
 
 
@@ -89,9 +88,10 @@ namespace TinaX.XILRuntime
         public ILAppDomain ILRuntimeAppDomain => m_AppDomain;
 
         public ICreateInstance InsatnceCreator => m_InsatnceCreator;
-        public IServiceInjector Serviceinjector => m_ServiceInjector;
-
+        //public IServiceInjector Serviceinjector => m_ServiceInjector;
+        public IReflectionProvider TypeProvider => m_TypeProvider;
         public DelegateManager DelegateManager => m_AppDomain.DelegateManager;
+
 
         public bool Initialized => m_Initialized;
 
@@ -112,7 +112,7 @@ namespace TinaX.XILRuntime
                 return;
 
             m_InsatnceCreator = new XILInstanceCreator(this);
-            m_ServiceInjector = new XILServiceInjector();
+            //m_ServiceInjector = new XILServiceInjector();
 
             //加载配置资产
             m_ConfigAsset = await LoadConfigAssetAsync(m_Options.ConfigAssetLoadPath, cancellationToken);

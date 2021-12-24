@@ -41,8 +41,8 @@ namespace TinaX.XILRuntime
             var xil = services.Get<IXILRuntime>();
             if (xil.InsatnceCreator != null)
                 services.Get<IXCore>().Activator.RegisterCreator(xil.InsatnceCreator);
-            if(xil.Serviceinjector != null)
-                services.RegisterServiceInjector(xil.Serviceinjector);
+            
+            services.RegisterReflectionProvider(xil.TypeProvider);
             return ModuleBehaviourResult.CreateSuccess(ModuleName);
         }
 
@@ -53,10 +53,8 @@ namespace TinaX.XILRuntime
             {
                 services.Get<IXCore>().Activator.RemoveCreator(xil.InsatnceCreator);
             }
-            if(xil.Serviceinjector != null)
-            {
-                services.RemoveServiceInjector(xil.Serviceinjector);
-            }
+            
+            services.RemoveReflectionProvider(xil.TypeProvider);
             return UniTask.CompletedTask;
         }
 

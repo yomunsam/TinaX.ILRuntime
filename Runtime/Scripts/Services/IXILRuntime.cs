@@ -9,7 +9,9 @@ namespace TinaX.XILRuntime
     {
         AppDomain ILRuntimeAppDomain { get; }
         ICreateInstance InsatnceCreator { get; }
-        IServiceInjector Serviceinjector { get; }
+        //IServiceInjector Serviceinjector { get; }
+        IReflectionProvider TypeProvider { get; }
+
         DelegateManager DelegateManager { get; }
         bool Initialized { get; }
 
