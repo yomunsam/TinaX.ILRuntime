@@ -1,7 +1,7 @@
 using System.Reflection;
 using ILRuntime.Runtime.Enviorment;
 using TinaX.Core.Activator;
-using TinaX.Core.Container;
+using TinaX.Core.ReflectionProvider;
 
 namespace TinaX.XILRuntime
 {
@@ -10,7 +10,7 @@ namespace TinaX.XILRuntime
         AppDomain ILRuntimeAppDomain { get; }
         ICreateInstance InsatnceCreator { get; }
         //IServiceInjector Serviceinjector { get; }
-        IReflectionProvider TypeProvider { get; }
+        IReflectionProvider ILRuntimeReflectionProvider { get; }
 
         DelegateManager DelegateManager { get; }
         bool Initialized { get; }

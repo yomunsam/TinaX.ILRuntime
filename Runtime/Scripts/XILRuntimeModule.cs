@@ -42,7 +42,7 @@ namespace TinaX.XILRuntime
             if (xil.InsatnceCreator != null)
                 services.Get<IXCore>().Activator.RegisterCreator(xil.InsatnceCreator);
             
-            services.RegisterReflectionProvider(xil.TypeProvider);
+            services.XCore.ReflectionProviderManager.Register(xil.ILRuntimeReflectionProvider);
             return ModuleBehaviourResult.CreateSuccess(ModuleName);
         }
 
@@ -53,8 +53,7 @@ namespace TinaX.XILRuntime
             {
                 services.Get<IXCore>().Activator.RemoveCreator(xil.InsatnceCreator);
             }
-            
-            services.RemoveReflectionProvider(xil.TypeProvider);
+            services.XCore.ReflectionProviderManager.Remove(xil.ILRuntimeReflectionProvider);
             return UniTask.CompletedTask;
         }
 

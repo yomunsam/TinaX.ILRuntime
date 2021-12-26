@@ -11,8 +11,8 @@ using ILRuntime.Mono.Cecil.Pdb;
 using ILRuntime.Runtime.CLRBinding;
 using ILRuntime.Runtime.Enviorment;
 using TinaX.Core.Activator;
-using TinaX.Core.Container;
 using TinaX.Core.Extensions;
+using TinaX.Core.ReflectionProvider;
 using TinaX.Exceptions;
 using TinaX.Options;
 using TinaX.Services;
@@ -27,8 +27,8 @@ using TinaX.XILRuntime.Internal;
 using TinaX.XILRuntime.Loader;
 using TinaX.XILRuntime.Options;
 using TinaX.XILRuntime.Redirects;
+using TinaX.XILRuntime.ReflectionProvider;
 using TinaX.XILRuntime.Registers;
-using TinaX.XILRuntime.ServiceContainer;
 using TinaX.XILRuntime.Structs;
 using UnityEngine;
 using ILAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
@@ -54,7 +54,7 @@ namespace TinaX.XILRuntime
 
         private readonly Dictionary<string, Stream> m_LoadedAssemblies = new Dictionary<string, Stream>();
         private readonly Dictionary<string, Stream> m_LoadedSymbols = new Dictionary<string, Stream>();
-        private readonly XILReflectionProvider m_TypeProvider;
+        private readonly XILReflectionProvider m_ReflectionProvider;
 
         //------------构造函数们-----------------------------------------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ namespace TinaX.XILRuntime
             this.m_ConfigAssetService = configAssetService;
             this.m_Xcore = xCore;
             this.m_AppDomain = new ILAppDomain(m_Options.DefaultJitFlags);
-            this.m_TypeProvider = new XILReflectionProvider();
+            this.m_ReflectionProvider = new XILReflectionProvider();
 
 #if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
             m_AppDomain.UnityMainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
@@ -89,7 +89,7 @@ namespace TinaX.XILRuntime
 
         public ICreateInstance InsatnceCreator => m_InsatnceCreator;
         //public IServiceInjector Serviceinjector => m_ServiceInjector;
-        public IReflectionProvider TypeProvider => m_TypeProvider;
+        public IReflectionProvider ILRuntimeReflectionProvider => m_ReflectionProvider;
         public DelegateManager DelegateManager => m_AppDomain.DelegateManager;
 
 
